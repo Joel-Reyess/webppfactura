@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import AdminNavbar from './components/AdminNavbar.vue';
+import AdminNavbar from '../components/AdminNavbar.vue';
 
     export default {
         name:'App',

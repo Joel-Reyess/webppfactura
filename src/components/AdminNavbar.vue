@@ -1,75 +1,110 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-    <!-- Logo -->
-    <a class="navbar-brand" href="#">
-      <img src="https://via.placeholder.com/100x30" alt="Logo" class="d-inline-block align-top">
-    </a>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light px-3">
+    
+    <!-- Botón Navbar -->
+    <button class="navbar-brand btn btn-link" @click="goToHome">Navbar</button>
 
-    <!-- Botón de menú para móviles -->
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+    <!-- Botón para colapsar en móviles -->
+    <button class="navbar-toggler" type="button" @click="toggleNavbar">
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <!-- Contenido de la Navbar -->
-    <div class="collapse navbar-collapse" id="navbarContent">
-      <!-- Campo de búsqueda -->
-      <form class="form-inline mx-auto my-2 my-lg-0">
-        <div class="input-group">
-          <input type="search" class="form-control" placeholder="Buscar en Drive" aria-label="Search">
-          <div class="input-group-append">
-            <button class="btn btn-outline-secondary" type="submit">
-              <i class="fas fa-search"></i>
-            </button>
-          </div>
-        </div>
+    <div class="collapse navbar-collapse" v-show="isNavbarOpen">
+      
+      <!-- Buscador -->
+      <form class="d-flex mx-auto">
+        <input class="form-control me-2" type="search" placeholder="Buscar" aria-label="Buscar">
+        <button class="btn btn-outline-success" type="submit">Buscar</button>
       </form>
 
-      <!-- Iconos de acciones -->
-      <ul class="navbar-nav ml-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="#">
-            <i class="fas fa-bell"></i>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">
-            <i class="fas fa-cog"></i>
-          </a>
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <img src="https://via.placeholder.com/30x30" alt="User" class="rounded-circle">
-          </a>
-          <!-- Menú desplegable del perfil -->
-          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="#">Mi perfil</a>
-            <a class="dropdown-item" href="#">Configuración</a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="#" @click="logout">Cerrar sesión</a>
-          </div>
-        </li>
-      </ul>
+      <!-- Dropdown -->
+      <div class="dropdown position-relative" ref="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" @click="toggleDropdown">
+          <img :src="myLogoUser" alt="Usuario" style="width: 24px; height: auto" />
+        </button>
+        <ul class="dropdown-menu" v-show="isDropdownOpen">
+          <li><button class="dropdown-item" @click="logout">Cerrar Sesión</button></li>
+        </ul>
+      </div>
+
     </div>
   </nav>
 </template>
 
 <script>
-export default {
-  name:'AdminNavbar'
-}
+import { ref, onMounted, onUnmounted } from "vue";
+import router from "../router/index.js";
+import myLogoUser from "../assets/usericon.svg";
 
+export default {
+  setup() {
+    const isNavbarOpen = ref(false);
+    const isDropdownOpen = ref(false);
+    const dropdown = ref(null);
+
+    const goToHome = () => {
+      router.push({ name: "HomeAdmin" });
+    };
+
+    const toggleNavbar = () => {
+      isNavbarOpen.value = !isNavbarOpen.value;
+    };
+
+    const toggleDropdown = () => {
+      isDropdownOpen.value = !isDropdownOpen.value;
+    };
+
+    const logout = () => {
+      console.log("Cerrando sesión...");
+      // Aquí puedes agregar la lógica para cerrar sesión
+    };
+
+    const closeDropdown = (event) => {
+      if (dropdown.value && !dropdown.value.contains(event.target)) {
+        isDropdownOpen.value = false;
+      }
+    };
+
+    onMounted(() => {
+      document.addEventListener("click", closeDropdown);
+    });
+
+    onUnmounted(() => {
+      document.removeEventListener("click", closeDropdown);
+    });
+
+    return {
+      isNavbarOpen,
+      isDropdownOpen,
+      goToHome,
+      toggleNavbar,
+      toggleDropdown,
+      logout,
+      dropdown,
+      myLogoUser
+    };
+  },
+};
 </script>
 
 <style scoped>
-.navbar-brand img {
-  height: 30px;
-}
-
-.nav-link img {
-  height: 30px;
-}
-
+/* Asegura que el dropdown se vea correctamente */
 .dropdown-menu {
-  min-width: 200px;
+  display: block;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  min-width: 160px;
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 5px 0;
+  border-radius: 0.25rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+}
+
+/* Oculta el dropdown cuando no está activo */
+.dropdown-menu:not([v-show="true"]) {
+  display: none;
 }
 </style>
