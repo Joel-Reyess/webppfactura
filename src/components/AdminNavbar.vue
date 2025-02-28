@@ -11,7 +11,7 @@
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse" v-show="isNavbarOpen">
+    <div class="collapse navbar-collapse" :class="{ show: isNavbarOpen }">
       
       <!-- Buscador -->
       <form class="d-flex mx-auto">
@@ -165,4 +165,17 @@ nav {
   width: 24px;
   height: auto;
 }
+
+.navbar-collapse {
+  transition: all 0.3s ease; /* Agrega una transición suave */
+}
+
+.navbar-toggler {
+  border: none; /* Elimina el borde del botón */
+}
+
+.navbar-toggler:focus {
+  outline: none; /* Elimina el contorno al hacer clic */
+}
+
 </style>

@@ -1,9 +1,8 @@
 <template>
     <div>
         <AdminNavbar></AdminNavbar>
-        <p>papa</p>
+        <p>Carpetas</p>
         <AdminSidebar></AdminSidebar>
-        
     </div>
 </template>
 
