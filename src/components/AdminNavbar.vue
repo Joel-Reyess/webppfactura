@@ -1,6 +1,8 @@
 <template>
   <nav class="navbar navbar-expand-lg navbar-light bg-light px-3">
-    
+    <button class="navbar-toggler d-md-none" type="button" @click="toggleSidebar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
     <!-- Botón Navbar -->
     <button class="navbar-brand btn btn-link" @click="goToHome">
       <img src="../assets/pastelesdegaby.png" alt="Los Pasteles Caseros de Gaby" class="logo-img">
@@ -44,7 +46,7 @@ import router from "../router/index.js";
 import myLogoUser from "../assets/usericon.svg";
 
 export default {
-  setup() {
+  setup(props, {emit}) {
     const isNavbarOpen = ref(false);
     const isDropdownOpen = ref(false);
     const isDropdownLeft = ref();
@@ -59,6 +61,10 @@ export default {
       isNavbarOpen.value = !isNavbarOpen.value;
     };
 
+    const toggleSidebar = () => {
+      // Emitir evento para alternar el sidebar
+      emit('toggle-sidebar');
+    };
     const toggleDropdown = (event) => {
       event.stopPropagation();
       isDropdownOpen.value = !isDropdownOpen.value;
@@ -104,6 +110,7 @@ export default {
       isDropdownLeft,
       goToHome,
       toggleNavbar,
+      toggleSidebar,
       toggleDropdown,
       logout,
       dropdown,
@@ -145,6 +152,7 @@ nav {
   overflow: visible; /* Asegúrate de que el dropdown no se corte */
   width: 100%;
   background-color: #F7F0F0;
+  height: 80px; 
 }
 
 /* Imagen del logo responsiva */
