@@ -1,23 +1,43 @@
 <template>
     <div>
-        <!-- Navbar -->
         <AdminNavbar @toggle-sidebar="toggleSidebar"></AdminNavbar>
-
-        <!-- Contenedor principal -->
         <div class="container-fluid">
             <div class="row flex-nowrap">
-                <!-- Sidebar -->
                 <AdminSidebar :is-sidebar-open="isSidebarOpen"></AdminSidebar>
-
-                <!-- Contenido principal -->
-                <div class="xl-6 main-content" :class="{ 'expanded': !isSidebarOpen }">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Archivos</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-                            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                            <a href="#" class="card-link">Card link</a>
-                            <a href="#" class="card-link">Another link</a>
+                <div class="col main-content" :class="{ 'expanded': !isSidebarOpen }">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Archivo 1</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
+                                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                                    <a href="#" class="card-link">Card link</a>
+                                    <a href="#" class="card-link">Another link</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Archivo 2</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
+                                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                                    <a href="#" class="card-link">Card link</a>
+                                    <a href="#" class="card-link">Another link</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Archivo 3</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
+                                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                                    <a href="#" class="card-link">Card link</a>
+                                    <a href="#" class="card-link">Another link</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -38,40 +58,41 @@ export default {
     },
     data() {
         return {
-            isSidebarOpen: true, // Estado para controlar la visibilidad del sidebar
+            isSidebarOpen: true,
         };
     },
     methods: {
         toggleSidebar() {
-            this.isSidebarOpen = !this.isSidebarOpen; // Alternar la visibilidad del sidebar
+            this.isSidebarOpen = !this.isSidebarOpen;
         }
     }
 }
 </script>
 
 <style scoped>
-/* Asegúrate de que el contenido principal ocupe el espacio restante */
 .main-content {
-    margin-left: 250px; /* Ajusta este valor según el ancho de tu sidebar */
-    width: calc(100% - 250px); /* Asegura que el contenido no se desborde */
-    padding: 20px; /* Espaciado interno */
-    transition: margin-left 0.3s ease, width 0.3s ease; /* Transición suave */
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    padding: 20px;
+    transition: margin-left 0.3s ease, width 0.3s ease;
+    margin-top: 80px;
 }
 
 .main-content.expanded {
-    margin-left: 0; /* Cuando el sidebar está oculto */
-    width: 100%; /* Ocupa todo el ancho */
+    margin-left: 0;
+    width: 100%;
 }
 
 @media (max-width: 767.98px) {
     .main-content {
-        margin-left: 0; /* En móviles, el contenido ocupa todo el ancho */
-        width: 100%; /* Asegura que el contenido ocupe todo el ancho */
+        margin-left: 0;
+        width: 100%;
+        margin-top: 80px;
     }
 
     .main-content.expanded {
-        margin-left: 0; /* Asegura que no haya margen en móviles */
-        width: 100%; /* Ocupa todo el ancho */
+        margin-left: 0;
+        width: 100%;
     }
 }
 </style>

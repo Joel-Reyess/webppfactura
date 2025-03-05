@@ -1,27 +1,19 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light px-3">
+  <nav class="navbar navbar-expand-lg  px-3 fixed-top">
     <button class="navbar-toggler d-md-none" type="button" @click="toggleSidebar">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <!-- Botón Navbar -->
     <button class="navbar-brand btn btn-link" @click="goToHome">
       <img src="../assets/pastelesdegaby.png" alt="Los Pasteles Caseros de Gaby" class="logo-img">
     </button>
-
-    <!-- Botón para colapsar en móviles -->
     <button class="navbar-toggler" type="button" @click="toggleNavbar">
       <span class="navbar-toggler-icon"></span>
     </button>
-
     <div class="collapse navbar-collapse" :class="{ show: isNavbarOpen }">
-      
-      <!-- Buscador -->
       <form class="d-flex mx-auto">
         <input class="form-control me-2" type="search" placeholder="Buscar" aria-label="Buscar">
         <button class="btn btn-success" type="submit">Buscar</button>
       </form>
-
-      <!-- Dropdown -->
       <div class="dropdown position-relative " ref="dropdown">
         <button class="btn btn-secondary dropdown-toggle" @click="toggleDropdown">
           <img :src="myLogoUser" alt="Usuario" class="user-img"/>
@@ -62,7 +54,6 @@ export default {
     };
 
     const toggleSidebar = () => {
-      // Emitir evento para alternar el sidebar
       emit('toggle-sidebar');
     };
     const toggleDropdown = (event) => {
@@ -74,8 +65,6 @@ export default {
         const dropdownRect = dropdown.value.getBoundingClientRect();
         const menuRect = dropdownMenu.value.getBoundingClientRect();
         const spaceRight = window.innerWidth - dropdownRect.right;
-
-        // Si no hay suficiente espacio a la derecha, abre el menú hacia la izquierda
         isDropdownLeft.value = spaceRight < menuRect.width;
       }
     };
@@ -124,8 +113,8 @@ export default {
 /* Asegura que el dropdown se vea correctamente */
 .dropdown-menu {
   position: absolute;
-  top: 100%; /* Coloca el menú debajo del botón */
-  right: 0; /* Alinea el menú a la derecha del contenedor */
+  top: 100%;
+  right: 0;
   z-index: 1000;
   min-width: 160px;
   background-color: #dc3545;
@@ -133,7 +122,7 @@ export default {
   padding: 5px 0;
   border-radius: 0.25rem;
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
-  display: block; /* Asegúrate de que el menú sea visible */
+  display: block;
 }
 .dropdown-menu.dropdown-menu-left {
   right: auto;
@@ -142,22 +131,23 @@ export default {
 /* Oculta el dropdown cuando no está activo */
 .dropdown {
   position: relative;
-  overflow: visible; /* Asegúrate de que el menú no se corte */
+  overflow: visible;
 }
 .dropdown-item:hover {
-  background-color: #c82333; /* Cambia el color de fondo al hacer hover */
+  background-color: #c82333;
 }
 
 nav {
-  overflow: visible; /* Asegúrate de que el dropdown no se corte */
+  overflow: visible;
   width: 100%;
   background-color: #F7F0F0;
   height: 80px; 
+  z-index: 1001;
 }
 
 /* Imagen del logo responsiva */
 .logo-img {
-  width: 150px;  /* Tamaño base */
+  width: 150px;
   height: auto;
   max-width: 100%;
 }
@@ -165,7 +155,25 @@ nav {
 /* Ajuste de tamaño en pantallas pequeñas */
 @media (max-width: 768px) {
   .logo-img {
-    width: 40px;  /* Reducir en móviles */
+    width: 110px;
+  }
+  .navbar-collapse {
+    position: fixed;
+    top: 80px; /* Ajusta este valor según la altura del navbar */
+    left: 0;
+    width: 100%;
+    background-color: #F7F0F0;
+    z-index: 1000; /* Asegura que el menú esté por encima del contenido */
+  }
+  nav{
+    background-color: #F7F0F0;
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 1001; /* Asegura que el menú esté por encima del navbar */
   }
 }
 
@@ -175,15 +183,15 @@ nav {
 }
 
 .navbar-collapse {
-  transition: all 0.3s ease; /* Agrega una transición suave */
+  transition: all 0.3s ease;
 }
 
 .navbar-toggler {
-  border: none; /* Elimina el borde del botón */
+  border: none;
 }
 
 .navbar-toggler:focus {
-  outline: none; /* Elimina el contorno al hacer clic */
+  outline: none;
 }
 
 </style>

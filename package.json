@@ -13,7 +13,9 @@
     "core-js": "^3.8.3",
     "register-service-worker": "^1.7.2",
     "vue": "^3.2.13",
-    "vue-router": "^4.5.0"
+    "vue-pdf": "^4.3.0",
+    "vue-router": "^4.5.0",
+    "vue3-pdfjs": "^0.1.6"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",

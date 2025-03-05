@@ -6,11 +6,11 @@
                 
                 backdrop-filter: blur(30px);
                 ">
-            <div class="card-body py-5 px-md-5">
-              <img src="../assets/pastelesdegaby.png" alt="Los Pasteles Caseros de Gaby" class="logo-img">
+            <div class="card-body py-5 px-md-4">
+            <img src="../assets/pastelesdegaby.png" alt="Los Pasteles Caseros de Gaby" class="logo-img">
               <div class="row d-flex justify-content-center">
                 <div class="col-lg-8">
-                  <h2 class="fw-bold mb-4">Ingresa aqui</h2>
+                  <h2 class="fw-bold mb-5">Registrate aqui</h2>
                   <form @submit.prevent="handleLogin">
                     <!-- 2 column grid layout with text inputs for the first and last names -->
                     <!-- Usuario -->
@@ -37,17 +37,15 @@
                       <label class="form-label" for="password">Contraseña</label>
                       <small v-if="errors.password" class="text-danger">{{ errors.password }}</small>
                     </div>
-                    <div class=" form-outline mb-4">
-                      <button type="button" @click="goToRegister" data-mdb-button-init data-mdb-ripple-init class="btn btn-secondary btn-block mb-4">
-                        Registrate aqui
-                      </button>
+                    <div class="form-outline mb-4">
+                      <input type="password" id="password" class="form-control" v-model="form.password" required />
+                      <label class="form-label" for="password">Confirmar contraseña</label>
+                      <small v-if="errors.password" class="text-danger">{{ errors.password }}</small>
                     </div>
                         <!-- Submit button -->
-                    <button type="button" @click="goToHome" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block mb-4">
-                      Iniciar sesión
+                    <button type="button" @click="goToLogin" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block mb-4">
+                      Registrar
                     </button>
-                
-
                   </form>
                 </div>
               </div>
@@ -103,19 +101,14 @@ export default {
       }
     };
 
-    const goToHome = () => {
-    router.push({ name:'HomeAdmin'})
-    }
-
-    const goToRegister = () => {
-      router.push({ name:'RegisterUser'})
+    const goToLogin = () => {
+    router.push({ name:'Home'})
     }
     return{
       form,
       errors,
       handleLogin,
-      goToHome,
-      goToRegister
+      goToLogin
     }
   }
 }
