@@ -22,7 +22,7 @@
   <script>
   import { ref, onMounted, onUnmounted } from "vue";
   import router from '../router/index.js';
-  //import axios from 'axios';
+  import axios from '../utils/axios.js';
 
   export default {
     props: {
@@ -36,8 +36,8 @@
       const isDropdownRight = ref(true);
       const dropdown = ref(null);
       const dropdownMenu = ref(null);
-      //const fileInput = ref(null);
-      //const selectedFile = ref(null);
+      const fileInput = ref(null);
+      const selectedFile = ref(null);
   
       const toggleDropdown = (event) => {
         event.stopPropagation();
@@ -62,32 +62,35 @@
         }
       };
 
-    //   const triggerFileInput = () => {
-    //   fileInput.value.click(); // Simula el clic en el input de archivo
-    // };
+      const triggerFileInput = () => {
+        fileInput.value.click(); // Simula el clic en el input de archivo
+      };
 
-    // const handleFileUpload = (event) => {
-    //   selectedFile.value = event.target.files[0]; // Almacena el archivo seleccionado
-    //   uploadFile(); // Llama a la función para subir el archivo
-    // };
+      const handleFileUpload = (event) => {
+        selectedFile.value = event.target.files[0]; // Almacena el archivo seleccionado
+        uploadFile(); // Llama a la función para subir el archivo
+      };
 
-    // const uploadFile = async () => {
-    //   if (!selectedFile.value) return;
-
-    //   const formData = new FormData();
-    //   formData.append('file', selectedFile.value);
-
-    //   try {
-    //     const response = await axios.post('http://tu-api.com/upload', formData, {
-    //       headers: {
-    //         'Content-Type': 'multipart/form-data'
-    //       }
-    //     });
-    //     console.log('Archivo subido con éxito:', response.data);
-    //   } catch (error) {
-    //     console.error('Error al subir el archivo:', error);
-    //   }
-    // };
+      const uploadFile = async () => {
+        if (!selectedFile.value) return;
+            
+        const formData = new FormData();
+        formData.append('archivo', selectedFile.value); // Agrega el archivo al FormData
+        formData.append('nombredocumento', selectedFile.value.name); // Nombre del archivo
+        formData.append('tipodocumento', selectedFile.value.type); // Tipo del archivo
+        formData.append('tamanodocumento', selectedFile.value.size); // Tamaño del archivo
+            
+        try {
+          const response = await axios.post('/api/documentos', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data', // Cambia el Content-Type para subida de archivos
+            },
+          });
+          console.log('Archivo subido con éxito:', response.data);
+        } catch (error) {
+          console.error('Error al subir el archivo:', error);
+        }
+      };
   
       onMounted(() => {
         document.addEventListener("click", closeDropdown);
@@ -110,9 +113,9 @@
         isDropdownRight,
         toggleDropdown,
         dropdown,
-        //fileInput,
-        //triggerFileInput,
-        //handleFileUpload,
+        fileInput,
+        triggerFileInput,
+        handleFileUpload,
         goToCarpetas,
         goToHome
       };

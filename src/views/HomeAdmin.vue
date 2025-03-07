@@ -6,36 +6,19 @@
                 <AdminSidebar :is-sidebar-open="isSidebarOpen"></AdminSidebar>
                 <div class="col main-content" :class="{ 'expanded': !isSidebarOpen }">
                     <div class="row">
-                        <div class="col-md-4">
+                        <!-- Iterar sobre los documentos y mostrar cada uno en una card -->
+                        <div class="col-md-4 mb-4" v-for="documento in documentos" :key="documento.iddocumento">
                             <div class="card">
                                 <div class="card-body">
-                                    <h5 class="card-title">Archivo 1</h5>
-                                    <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-                                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                                    <a href="#" class="card-link">Card link</a>
-                                    <a href="#" class="card-link">Another link</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Archivo 2</h5>
-                                    <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-                                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                                    <a href="#" class="card-link">Card link</a>
-                                    <a href="#" class="card-link">Another link</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Archivo 3</h5>
-                                    <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
-                                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                                    <a href="#" class="card-link">Card link</a>
-                                    <a href="#" class="card-link">Another link</a>
+                                    <h5 class="card-title">{{ documento.nombredocumento }}</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">
+                                        {{ documento.tipodocumento }} - {{ documento.tamanodocumento }} bytes
+                                    </h6>
+                                    <p class="card-text">
+                                        Subido el: {{ new Date(documento.fechasubida).toLocaleDateString() }}
+                                    </p>
+                                    <a :href="documento.rutadocumento" class="card-link" target="_blank">Ver archivo</a>
+                                    <a href="#" class="card-link">Opciones</a>
                                 </div>
                             </div>
                         </div>
@@ -49,6 +32,7 @@
 <script>
 import AdminNavbar from '../components/AdminNavbar.vue';
 import AdminSidebar from '../components/AdminSidebar.vue';
+import axios from '../utils/axios.js';
 
 export default {
     name: 'HomeAdmin',
@@ -59,12 +43,26 @@ export default {
     data() {
         return {
             isSidebarOpen: true,
+            documentos: []
         };
     },
     methods: {
         toggleSidebar() {
             this.isSidebarOpen = !this.isSidebarOpen;
+        },
+
+        async obtenerDocumentos(){
+            try {
+                const response = await axios.get('/api/documentos');
+                this.documentos = response.data;
+            } catch (error) {
+                console.log("Error al obtener los documentos", error);
+            }
         }
+    },
+
+    mounted(){
+        this.obtenerDocumentos();
     }
 }
 </script>
@@ -94,5 +92,41 @@ export default {
         margin-left: 0;
         width: 100%;
     }
+}
+
+.card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-body {
+    flex: 1;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.card-subtitle {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.card-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.card-link {
+    font-size: 0.875rem;
+    color: #007bff;
+    text-decoration: none;
+}
+
+.card-link:hover {
+    text-decoration: underline;
 }
 </style>
