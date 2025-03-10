@@ -17,7 +17,7 @@
                                     <p class="card-text">
                                         Subido el: {{ new Date(documento.fechasubida).toLocaleDateString() }}
                                     </p>
-                                    <a :href="documento.rutadocumento" class="card-link" target="_blank">Ver archivo</a>
+                                    <a href="#" class="card-link" @click.prevent="openModal(documento.rutadocumento)">Ver archivo</a>
                                     <a href="#" class="card-link">Opciones</a>
                                 </div>
                             </div>
@@ -26,6 +26,7 @@
                 </div>
             </div>
         </div>
+        <ModalDoc :isOpen="isModalOpen" :fileUrl="selectedFileUrl" @close-modal="closeModal" />
     </div>
 </template>
 
@@ -33,17 +34,21 @@
 import AdminNavbar from '../components/AdminNavbar.vue';
 import AdminSidebar from '../components/AdminSidebar.vue';
 import axios from '../utils/axios.js';
+import ModalDoc from '../components/ModalDoc.vue';
 
 export default {
     name: 'HomeAdmin',
     components: {
         AdminNavbar,
-        AdminSidebar
+        AdminSidebar,
+        ModalDoc
     },
     data() {
         return {
             isSidebarOpen: true,
-            documentos: []
+            documentos: [],
+            isModalOpen: false, // Estado para controlar la visibilidad del modal
+            selectedFileUrl: '',
         };
     },
     methods: {
@@ -58,7 +63,18 @@ export default {
             } catch (error) {
                 console.log("Error al obtener los documentos", error);
             }
-        }
+        },
+
+        openModal(fileName) {
+          this.selectedFileUrl = `http://localhost:3000/uploads/${fileName}`; // Construye la URL completa
+          this.isModalOpen = true;
+        },
+
+        // Método para cerrar el modal
+        closeModal() {
+          this.isModalOpen = false;
+          this.selectedFileUrl = '';
+        },
     },
 
     mounted(){
