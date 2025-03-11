@@ -18,7 +18,13 @@
                                         Subido el: {{ new Date(documento.fechasubida).toLocaleDateString() }}
                                     </p>
                                     <a href="#" class="card-link" @click.prevent="openModal(documento.rutadocumento)">Ver archivo</a>
-                                    <a href="#" class="card-link">Opciones</a>
+                                    <div class="dropdown">
+                                        <a href="#" class="card-link dropdown-toggle" data-bs-toggle="dropdown">Opciones</a>
+                                        <ul class="dropdown-menu">
+                                          <li><a class="dropdown-item" href="#" @click.prevent="asignarACarpeta(documento)">Asignar a carpeta</a></li>
+                                          <!-- Otras opciones pueden ir aquí -->
+                                        </ul>
+                                    </div>    
                                 </div>
                             </div>
                         </div>
@@ -74,6 +80,43 @@ export default {
         closeModal() {
           this.isModalOpen = false;
           this.selectedFileUrl = '';
+        },
+
+        async asignarACarpeta(documento) {
+          try {
+            // Obtener la lista de carpetas
+            const response = await axios.get('/api/folders');
+            const carpetas = response.data;
+
+            // Mostrar un diálogo para seleccionar una carpeta
+            const carpetaSeleccionada = prompt(
+              `Seleccione una carpeta para asignar el archivo "${documento.nombredocumento}":\n` +
+              carpetas.map((carpeta, index) => `${index + 1}. ${carpeta.nombrecarpeta}`).join('\n')
+            );
+
+            if (!carpetaSeleccionada) return; // Si el usuario cancela
+
+            // Buscar la carpeta seleccionada
+            const carpeta = carpetas.find(
+              (carpeta) => carpeta.nombrecarpeta === carpetaSeleccionada
+            );
+
+            if (!carpeta) {
+              alert('Carpeta no válida');
+              return;
+            }
+        
+            // Enviar la solicitud para asignar el archivo a la carpeta
+            await axios.post('/api/documentos/asignar-carpeta', {
+              iddocumento: documento.iddocumento,
+              idcarpeta: carpeta.idcarpeta,
+            });
+        
+            alert('Archivo asignado a la carpeta correctamente');
+          } catch (error) {
+            console.error('Error al asignar el archivo a la carpeta:', error);
+            alert('Error al asignar el archivo a la carpeta');
+          }
         },
     },
 

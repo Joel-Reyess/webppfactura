@@ -1,25 +1,117 @@
 <template>
-    <div>
-        <AdminNavbar></AdminNavbar>
-        <p>Carpetas</p>
-        <AdminSidebar></AdminSidebar>
+  <div>
+    <AdminNavbar></AdminNavbar>
+    <div class="container-fluid">
+      <div class="row flex-nowrap">
+        <AdminSidebar :is-sidebar-open="true"></AdminSidebar>
+        <div class="col main-content">
+          <div class="row">
+            <div class="col-md-4 mb-4" v-for="carpeta in carpetas" :key="carpeta.idcarpeta">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">{{ carpeta.nombrecarpeta }}</h5>
+                  <h6 class="card-subtitle mb-2 text-muted">
+                    {{ carpeta.descripcioncarpeta }}
+                  </h6>
+                  <a href="#" class="card-link">Abrir carpeta</a>
+                  <a href="#" class="card-link">Opciones</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </template>
 
 <script>
 import AdminNavbar from '../components/AdminNavbar.vue';
 import AdminSidebar from '../components/AdminSidebar.vue';
+import axios from '../utils/axios.js';
 
-    export default {
-        name:'App',
-        components:{
-            AdminNavbar,
-            AdminSidebar
-        }
-
-    }
+export default {
+  name: 'CarpetasAdmin',
+  components: {
+    AdminNavbar,
+    AdminSidebar,
+  },
+  data() {
+    return {
+      carpetas: [], // Estado para almacenar las carpetas
+    };
+  },
+  methods: {
+    async obtenerCarpetas() {
+      try {
+        const response = await axios.get('/api/folders');
+        this.carpetas = response.data;
+      } catch (error) {
+        console.error('Error al obtener las carpetas:', error);
+      }
+    },
+  },
+  mounted() {
+    this.obtenerCarpetas();
+  },
+};
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
+.main-content {
+  margin-left: 250px;
+  width: calc(100% - 250px);
+  padding: 20px;
+  transition: margin-left 0.3s ease, width 0.3s ease;
+  margin-top: 80px;
+}
 
+.main-content.expanded {
+  margin-left: 0;
+  width: 100%;
+}
+
+@media (max-width: 767.98px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    margin-top: 80px;
+  }
+
+  .main-content.expanded {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+.card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-body {
+  flex: 1;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.card-subtitle {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.card-link {
+  font-size: 0.875rem;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.card-link:hover {
+  text-decoration: underline;
+}
 </style>

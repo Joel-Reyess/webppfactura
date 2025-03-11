@@ -11,7 +11,7 @@
           >
             <li><button type="button" class="dropdown-item btn btn-outline-secondary" @click="triggerFileInput">Subir archivo</button>
               <input type="file" ref="fileInput" style="display: none;" @change="handleFileUpload" /></li>
-            <li><button type="button" class="dropdown-item btn btn-outline-secondary">Crear carpeta</button></li>
+            <li><button type="button" class="dropdown-item btn btn-outline-secondary" @click="crearCarpeta">Crear carpeta</button></li>
           </ul>      
         </div>
         <button type="button" class="btn btn-light" @click="goToHome">Página principal</button> 
@@ -92,6 +92,21 @@
         }
       };
   
+      const crearCarpeta = async () => {
+        const nombreCarpeta = prompt("Ingrese el nombre de la carpeta:");
+        if (!nombreCarpeta) return;
+        try {
+            const response = await axios.post('/api/folders', {
+                nombrecarpeta: nombreCarpeta,
+            });
+            console.log('Carpeta creada con éxito:', response.data);
+            alert('Carpeta creada con éxito');
+        } catch (error) {
+            console.error('Error al crear la carpeta:', error);
+            alert('Error al crear la carpeta');
+        }
+      };
+
       onMounted(() => {
         document.addEventListener("click", closeDropdown);
       });
@@ -116,6 +131,7 @@
         fileInput,
         triggerFileInput,
         handleFileUpload,
+        crearCarpeta,
         goToCarpetas,
         goToHome
       };
