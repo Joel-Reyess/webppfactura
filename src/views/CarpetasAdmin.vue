@@ -13,7 +13,12 @@
                   <h6 class="card-subtitle mb-2 text-muted">
                     {{ carpeta.descripcioncarpeta }}
                   </h6>
-                  <a href="#" class="card-link">Abrir carpeta</a>
+                  <router-link
+                    :to="{ name: 'ArchivosCarpeta', params: { id: carpeta.idcarpeta } }"
+                    class="card-link"
+                  >
+                    Abrir carpeta
+                  </router-link>
                   <a href="#" class="card-link">Opciones</a>
                 </div>
               </div>
@@ -38,7 +43,7 @@ export default {
   },
   data() {
     return {
-      carpetas: [], // Estado para almacenar las carpetas
+      carpetas: [],
     };
   },
   methods: {

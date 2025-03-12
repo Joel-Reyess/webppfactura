@@ -21,7 +21,7 @@
                                     <div class="dropdown">
                                         <a href="#" class="card-link dropdown-toggle" data-bs-toggle="dropdown">Opciones</a>
                                         <ul class="dropdown-menu">
-                                          <li><a class="dropdown-item" href="#" @click.prevent="asignarACarpeta(documento)">Asignar a carpeta</a></li>
+                                          <li><a class="dropdown-item" href="#" @click.prevent="abrirModalAsignarCarpeta(documento)">Asignar a carpeta</a></li>
                                           <!-- Otras opciones pueden ir aquí -->
                                         </ul>
                                     </div>    
@@ -33,6 +33,12 @@
             </div>
         </div>
         <ModalDoc :isOpen="isModalOpen" :fileUrl="selectedFileUrl" @close-modal="closeModal" />
+        <SeleccionarCarpetaModal
+          :isOpen="isModalCarpetaOpen"
+          :carpetas="carpetas"
+          @cerrar-modal="cerrarModalCarpeta"
+          @seleccionar-carpeta="asignarACarpeta"
+        />
     </div>
 </template>
 
@@ -41,13 +47,15 @@ import AdminNavbar from '../components/AdminNavbar.vue';
 import AdminSidebar from '../components/AdminSidebar.vue';
 import axios from '../utils/axios.js';
 import ModalDoc from '../components/ModalDoc.vue';
+import SeleccionarCarpetaModal from '../components/SeleccionarCarpetaModal.vue';
 
 export default {
     name: 'HomeAdmin',
     components: {
         AdminNavbar,
         AdminSidebar,
-        ModalDoc
+        ModalDoc,
+        SeleccionarCarpetaModal
     },
     data() {
         return {
@@ -55,6 +63,9 @@ export default {
             documentos: [],
             isModalOpen: false, // Estado para controlar la visibilidad del modal
             selectedFileUrl: '',
+            isModalCarpetaOpen: false,
+            carpetas: [],
+            documentoSeleccionado: null,
         };
     },
     methods: {
@@ -71,6 +82,15 @@ export default {
             }
         },
 
+        async obtenerCarpetas() {
+          try {
+            const response = await axios.get('/api/folders');
+            this.carpetas = response.data;
+          } catch (error) {
+            console.log('Error al obtener las carpetas', error);
+          }
+        },
+
         openModal(fileName) {
           this.selectedFileUrl = `http://localhost:3000/uploads/${fileName}`; // Construye la URL completa
           this.isModalOpen = true;
@@ -82,37 +102,22 @@ export default {
           this.selectedFileUrl = '';
         },
 
-        async asignarACarpeta(documento) {
-          try {
-            // Obtener la lista de carpetas
-            const response = await axios.get('/api/folders');
-            const carpetas = response.data;
-
-            // Mostrar un diálogo para seleccionar una carpeta
-            const carpetaSeleccionada = prompt(
-              `Seleccione una carpeta para asignar el archivo "${documento.nombredocumento}":\n` +
-              carpetas.map((carpeta, index) => `${index + 1}. ${carpeta.nombrecarpeta}`).join('\n')
-            );
-
-            if (!carpetaSeleccionada) return; // Si el usuario cancela
-
-            // Buscar la carpeta seleccionada
-            const carpeta = carpetas.find(
-              (carpeta) => carpeta.nombrecarpeta === carpetaSeleccionada
-            );
-
-            if (!carpeta) {
-              alert('Carpeta no válida');
-              return;
-            }
+        abrirModalAsignarCarpeta(documento) {
+          this.documentoSeleccionado = documento;
+          this.isModalCarpetaOpen = true;
+        },
+        cerrarModalCarpeta() {
+          this.isModalCarpetaOpen = false;
+        },
         
-            // Enviar la solicitud para asignar el archivo a la carpeta
+        async asignarACarpeta(carpeta) {
+          try {
             await axios.post('/api/documentos/asignar-carpeta', {
-              iddocumento: documento.iddocumento,
+              iddocumento: this.documentoSeleccionado.iddocumento,
               idcarpeta: carpeta.idcarpeta,
             });
-        
             alert('Archivo asignado a la carpeta correctamente');
+            this.cerrarModalCarpeta();
           } catch (error) {
             console.error('Error al asignar el archivo a la carpeta:', error);
             alert('Error al asignar el archivo a la carpeta');
@@ -122,6 +127,7 @@ export default {
 
     mounted(){
         this.obtenerDocumentos();
+        this.obtenerCarpetas();
     }
 }
 </script>

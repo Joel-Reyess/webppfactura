@@ -24,7 +24,12 @@ const routes = [
         path:'/RegisterUser',
         name:'RegisterUser',
         component: RegisterUser
-    }
+    },
+    {
+      path: '/carpeta/:id',
+      name: 'ArchivosCarpeta',
+      component: () => import('../views/ArchivosCarpeta.vue'),
+    },
 ]
 
 const router = createRouter({
