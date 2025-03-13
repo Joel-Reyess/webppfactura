@@ -1,10 +1,11 @@
 <template>
   <div>
-    <AdminNavbar></AdminNavbar>
+    <AdminNavbar @toggle-sidebar="toggleSidebar"></AdminNavbar>
     <div class="container-fluid">
       <div class="row flex-nowrap">
-        <AdminSidebar :is-sidebar-open="true"></AdminSidebar>
-        <div class="col main-content">
+        <AdminSidebar :is-sidebar-open="isSidebarOpen"></AdminSidebar>
+        <div class="col main-content" :class="{ 'expanded': !isSidebarOpen }">
+          <h2>Carpetas</h2>
           <div class="row">
             <div class="col-md-4 mb-4" v-for="carpeta in carpetas" :key="carpeta.idcarpeta">
               <div class="card">
@@ -44,9 +45,14 @@ export default {
   data() {
     return {
       carpetas: [],
+      isSidebarOpen: true,
     };
   },
   methods: {
+
+    toggleSidebar() {
+        this.isSidebarOpen = !this.isSidebarOpen;
+    },
     async obtenerCarpetas() {
       try {
         const response = await axios.get('/api/folders');

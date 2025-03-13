@@ -1,5 +1,5 @@
 <template>
-    <div class="sidebar" :class="{ 'd-none': !isSidebarOpen, 'd-md-block': true }">
+    <div class="sidebar" :class="{ 'd-none': !isSidebarOpen, 'd-md-block': true, 'sidebar-open': isSidebarOpen }">
       <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 min-vh-100">
         <div class="dropdown pb-4" ref="dropdown">
           <button type="button" class="btn btn-light" @click="toggleDropdown">Nuevo</button>  
@@ -197,16 +197,16 @@
     background-color: #e2e6ea;
     border-color: #dae0e5;
 }
-  .sidebar {
-    width: 250px; 
-    position: fixed; 
-    top: 80px; 
-    left: 0;
-    height: calc(100vh - 60px); 
-    z-index: 1000; 
-    background-color: #f8f9fa; 
-    transition: transform 0.3s ease; 
-  }
+.sidebar {
+  width: 250px; 
+  position: fixed; 
+  top: 80px; 
+  left: 0;
+  height: calc(100vh - 60px); 
+  z-index: 1000; 
+  background-color: #f8f9fa; 
+  transition: transform 0.3s ease; 
+}
   
   @media (max-width: 767.98px) {
     .sidebar {
@@ -214,6 +214,9 @@
     }
   
     .sidebar:not(.d-none) {
+      transform: translateX(0);
+    }
+    .sidebar.sidebar-open {
       transform: translateX(0);
     }
   }

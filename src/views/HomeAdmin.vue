@@ -92,7 +92,7 @@ export default {
         },
 
         openModal(fileName) {
-          this.selectedFileUrl = `http://localhost:3000/uploads/${fileName}`; // Construye la URL completa
+          this.selectedFileUrl = `http://localhost:3000/uploads/${fileName}`;
           this.isModalOpen = true;
         },
 
