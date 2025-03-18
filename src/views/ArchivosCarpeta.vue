@@ -31,6 +31,12 @@
                     Subido el: {{ new Date(documento.fechasubida).toLocaleDateString() }}
                   </p>
                   <a href="#" class="card-link" @click.prevent="openModal(documento.rutadocumento)">Ver archivo</a>
+                  <div class="dropdown">
+                      <a href="#" class="card-link dropdown-toggle" data-bs-toggle="dropdown">Opciones</a>
+                      <ul class="dropdown-menu">
+                        <li><a class="dropdown-item text-danger" href="#" @click.prevent="confirmarEliminacion(documento)">Eliminar</a></li>
+                      </ul>
+                  </div>    
                 </div>
               </div>
             </div>
@@ -73,6 +79,7 @@ export default {
       try {
         const response = await axios.get(`/api/documentos/carpeta/${this.$route.params.id}`);
         this.documentos = response.data;
+        this.obtenerDocumentos();
       } catch (error) {
         console.error('Error al obtener los documentos de la carpeta:', error);
       }
@@ -124,17 +131,17 @@ export default {
 </script>
 <style scoped>
 .main-content {
-  margin-left: 250px; /* Ajusta el margen izquierdo para evitar superposición con el sidebar */
-  width: calc(100% - 250px); /* Ajusta el ancho para que no se superponga con el sidebar */
-  padding: 20px; /* Agrega un padding para separar el contenido del navbar */
-  transition: margin-left 0.3s ease, width 0.3s ease; /* Transición suave */
-  margin-top: 80px; /* Ajusta el margen superior para evitar superposición con el navbar */
+  margin-left: 250px; 
+  width: calc(100% - 250px);
+  padding: 20px; 
+  transition: margin-left 0.3s ease, width 0.3s ease; 
+  margin-top: 80px; 
 }
 
 @media (max-width: 767.98px) {
   .main-content {
-    margin-left: 0; /* En pantallas pequeñas, el sidebar se oculta */
-    width: 100%; /* Ocupa todo el ancho en pantallas pequeñas */
+    margin-left: 0; 
+    width: 100%; 
   }
 }
 

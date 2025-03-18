@@ -6,7 +6,6 @@
                 <AdminSidebar :is-sidebar-open="isSidebarOpen"></AdminSidebar>
                 <div class="col main-content" :class="{ 'expanded': !isSidebarOpen }">
                     <div class="row">
-                        <!-- Iterar sobre los documentos y mostrar cada uno en una card -->
                         <div class="col-md-4 mb-4" v-for="documento in documentos" :key="documento.iddocumento">
                             <div class="card">
                                 <div class="card-body">
@@ -22,6 +21,7 @@
                                         <a href="#" class="card-link dropdown-toggle" data-bs-toggle="dropdown">Opciones</a>
                                         <ul class="dropdown-menu">
                                           <li><a class="dropdown-item" href="#" @click.prevent="abrirModalAsignarCarpeta(documento)">Asignar a carpeta</a></li>
+                                          <li><a class="dropdown-item text-danger" href="#" @click.prevent="abrirModalConfirmacion(documento)">Eliminar</a></li>
                                           <!-- Otras opciones pueden ir aquí -->
                                         </ul>
                                     </div>    
@@ -32,6 +32,21 @@
                 </div>
             </div>
         </div>
+        <ConfirmationModal
+          :isOpen="isConfirmationModalOpen"
+          title="Eliminar documento"
+          message="¿Estás seguro de que deseas eliminar este documento?"
+          @close-modal="cerrarModalConfirmacion"
+          @confirm-action="eliminarDocumento"
+        />
+
+        <ConfirmationModal
+          :isOpen="isSuccessModalOpen"
+          title="Documento eliminado"
+          message="El documento se ha eliminado correctamente."
+          :showConfirmButton="false"
+          @close-modal="cerrarModalExito"
+        />
         <ModalDoc :isOpen="isModalOpen" :fileUrl="selectedFileUrl" @close-modal="closeModal" />
         <SeleccionarCarpetaModal
           :isOpen="isModalCarpetaOpen"
@@ -48,6 +63,7 @@ import AdminSidebar from '../components/AdminSidebar.vue';
 import axios from '../utils/axios.js';
 import ModalDoc from '../components/ModalDoc.vue';
 import SeleccionarCarpetaModal from '../components/SeleccionarCarpetaModal.vue';
+import ConfirmationModal from '../components/ConfirmationModal.vue';
 
 export default {
     name: 'HomeAdmin',
@@ -55,17 +71,21 @@ export default {
         AdminNavbar,
         AdminSidebar,
         ModalDoc,
-        SeleccionarCarpetaModal
+        SeleccionarCarpetaModal,
+        ConfirmationModal
     },
     data() {
         return {
             isSidebarOpen: true,
             documentos: [],
-            isModalOpen: false, // Estado para controlar la visibilidad del modal
+            isModalOpen: false,
             selectedFileUrl: '',
             isModalCarpetaOpen: false,
             carpetas: [],
             documentoSeleccionado: null,
+            isConfirmationModalOpen: false, // Estado para el modal de confirmación
+            isSuccessModalOpen: false, // Estado para el modal de éxito
+            documentoAEliminar: null,
         };
     },
     methods: {
@@ -77,6 +97,7 @@ export default {
             try {
                 const response = await axios.get('/api/documentos');
                 this.documentos = response.data;
+                this.obtenerDocumentos();
             } catch (error) {
                 console.log("Error al obtener los documentos", error);
             }
@@ -122,6 +143,30 @@ export default {
             console.error('Error al asignar el archivo a la carpeta:', error);
             alert('Error al asignar el archivo a la carpeta');
           }
+        },
+
+        abrirModalConfirmacion(documento) {
+          this.documentoAEliminar = documento;
+          this.isConfirmationModalOpen = true;
+        },
+    
+        cerrarModalConfirmacion() {
+          this.isConfirmationModalOpen = false;
+          this.documentoAEliminar = null;
+        },
+        async eliminarDocumento() {
+          try {
+            await axios.delete(`/api/documentos/${this.documentoAEliminar.iddocumento}`);
+            this.isConfirmationModalOpen = false;
+            this.isSuccessModalOpen = true;
+            this.obtenerDocumentos();
+          } catch (error) {
+            console.error("Error al eliminar el documento:", error);
+            alert("Error al eliminar el documento");
+          }
+        },
+        cerrarModalExito() {
+          this.isSuccessModalOpen = false;
         },
     },
 
