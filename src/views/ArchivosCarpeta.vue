@@ -34,7 +34,7 @@
                   <div class="dropdown">
                       <a href="#" class="card-link dropdown-toggle" data-bs-toggle="dropdown">Opciones</a>
                       <ul class="dropdown-menu">
-                        <li><a class="dropdown-item text-danger" href="#" @click.prevent="confirmarEliminacion(documento)">Eliminar</a></li>
+                        <li><a class="dropdown-item text-danger" href="#" @click.prevent="abrirModalConfirmacion(documento)">Eliminar</a></li>
                       </ul>
                   </div>    
                 </div>
@@ -45,6 +45,20 @@
       </div>
     </div>
     <ModalDoc :isOpen="isModalOpen" :fileUrl="selectedFileUrl" @close-modal="closeModal" />
+    <ConfirmationModal
+      :isOpen="isConfirmationModalOpen"
+      title="Desasignar documento"
+      message="¿Estás seguro de que deseas desasignar este documento de la carpeta?"
+      @close-modal="cerrarModalConfirmacion"
+      @confirm-action="eliminarDocumento"
+    />
+    <ConfirmationModal
+      :isOpen="isSuccessModalOpen"
+      title="Documento desasignado"
+      message="El documento se ha desasignado de la carpeta correctamente."
+      :showConfirmButton="false"
+      @close-modal="cerrarModalExito"
+    />
   </div>
 </template>
 
@@ -53,6 +67,7 @@ import AdminNavbar from '../components/AdminNavbar.vue';
 import AdminSidebar from '../components/AdminSidebar.vue';
 import axios from '../utils/axios.js';
 import ModalDoc from '../components/ModalDoc.vue';
+import ConfirmationModal from '../components/ConfirmationModal.vue';
 
 export default {
   name: 'ArchivosCarpeta',
@@ -60,6 +75,7 @@ export default {
     AdminNavbar,
     AdminSidebar,
     ModalDoc,
+    ConfirmationModal
   },
   data() {
     return {
@@ -68,6 +84,9 @@ export default {
       selectedFileUrl: '',
       selectedFile: null,
       isSidebarOpen: true,
+      isConfirmationModalOpen: false,
+      isSuccessModalOpen: false,
+      documentoAEliminar: null,
     };
   },
   methods: {
@@ -79,7 +98,6 @@ export default {
       try {
         const response = await axios.get(`/api/documentos/carpeta/${this.$route.params.id}`);
         this.documentos = response.data;
-        this.obtenerDocumentos();
       } catch (error) {
         console.error('Error al obtener los documentos de la carpeta:', error);
       }
@@ -103,11 +121,11 @@ export default {
       if (!this.selectedFile) return;
 
       const formData = new FormData();
-      formData.append('archivo', this.selectedFile); // Agrega el archivo al FormData
-      formData.append('nombredocumento', this.selectedFile.name); // Nombre del archivo
-      formData.append('tipodocumento', this.selectedFile.type); // Tipo del archivo
-      formData.append('tamanodocumento', this.selectedFile.size); // Tamaño del archivo
-      formData.append('idcarpeta', this.$route.params.id); // Asigna el archivo a la carpeta actual
+      formData.append('archivo', this.selectedFile);
+      formData.append('nombredocumento', this.selectedFile.name);
+      formData.append('tipodocumento', this.selectedFile.type);
+      formData.append('tamanodocumento', this.selectedFile.size);
+      formData.append('idcarpeta', this.$route.params.id);
 
       try {
         const response = await axios.post('/api/documentos', formData, {
@@ -116,12 +134,36 @@ export default {
           },
         });
         console.log('Archivo subido con éxito:', response.data);
-        this.obtenerDocumentosDeCarpeta(); // Actualiza la lista de documentos
+        this.obtenerDocumentosDeCarpeta(); 
         alert('Archivo subido con éxito');
       } catch (error) {
         console.error('Error al subir el archivo:', error);
         alert('Error al subir el archivo');
       }
+    },
+    abrirModalConfirmacion(documento) {
+      this.documentoAEliminar = documento;
+      this.isConfirmationModalOpen = true;
+    },
+
+    cerrarModalConfirmacion() {
+      this.isConfirmationModalOpen = false;
+      this.documentoAEliminar = null;
+    },
+    async eliminarDocumento() {
+      try {
+        // Llama al endpoint para desasignar el documento de la carpeta
+        await axios.put(`/api/documentos/desasignar/${this.documentoAEliminar.iddocumento}`);
+        this.isConfirmationModalOpen = false;
+        this.isSuccessModalOpen = true;
+        this.obtenerDocumentosDeCarpeta();
+      } catch (error) {
+        console.error("Error al desasignar el documento de la carpeta:", error);
+        alert("Error al desasignar el documento de la carpeta");
+      }
+    },
+    cerrarModalExito() {
+      this.isSuccessModalOpen = false;
     },
   },
   mounted() {

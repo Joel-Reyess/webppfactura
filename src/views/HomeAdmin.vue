@@ -137,8 +137,8 @@ export default {
               iddocumento: this.documentoSeleccionado.iddocumento,
               idcarpeta: carpeta.idcarpeta,
             });
-            alert('Archivo asignado a la carpeta correctamente');
-            this.cerrarModalCarpeta();
+            this.obtenerDocumentos(); // Actualiza la lista de documentos
+            this.cerrarModalCarpeta(); // Cierra el modal de selección de carpeta
           } catch (error) {
             console.error('Error al asignar el archivo a la carpeta:', error);
             alert('Error al asignar el archivo a la carpeta');
