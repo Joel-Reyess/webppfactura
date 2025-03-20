@@ -6,7 +6,7 @@
       <p>{{ message }}</p>
       <div class="modal-actions">
         <button v-if="showConfirmButton" class="btn btn-danger" @click="confirmAction">Confirmar</button>
-        <button class="btn btn-secondary" @click="closeModal">Cancelar</button>
+        <button v-if="showConfirmButton" class="btn btn-secondary" @click="closeModal">Cancelar</button>
       </div>
     </div>
   </div>

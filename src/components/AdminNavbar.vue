@@ -10,8 +10,8 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" :class="{ show: isNavbarOpen }">
-      <form class="d-flex mx-auto">
-        <input class="form-control me-2" type="search" placeholder="Buscar" aria-label="Buscar">
+      <form class="d-flex mx-auto" @submit.prevent="handleSearch">
+        <input class="form-control me-2" type="search" placeholder="Buscar" aria-label="Buscar" v-model="searchTerm">
         <button class="btn btn-success" type="submit">Buscar</button>
       </form>
       <div class="dropdown position-relative " ref="dropdown">
@@ -44,6 +44,7 @@ export default {
     const isDropdownLeft = ref();
     const dropdown = ref(null);
     const dropdownMenu = ref(null);
+    const searchTerm = ref("");
 
     const goToHome = () => {
       router.push({ name: "HomeAdmin" });
@@ -72,6 +73,9 @@ export default {
     const logout = () => {
       console.log("Cerrando sesión...");
       // Aquí puedes agregar la lógica para cerrar sesión
+    };
+    const handleSearch = () => {
+      emit("search", searchTerm.value); // Emite el término de búsqueda
     };
 
     const closeDropdown = (event) => {
@@ -103,7 +107,9 @@ export default {
       toggleDropdown,
       logout,
       dropdown,
-      myLogoUser
+      myLogoUser,
+      searchTerm,
+      handleSearch,
     };
   },
 };

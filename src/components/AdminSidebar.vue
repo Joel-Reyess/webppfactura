@@ -31,7 +31,7 @@
         required: true
       }
     },
-    setup() {
+    setup(props, { emit }) {
       const isDropdownOpen = ref(false);
       const isDropdownRight = ref(true);
       const dropdown = ref(null);
@@ -87,6 +87,7 @@
             },
           });
           console.log('Archivo subido con éxito:', response.data);
+          emit('file-uploaded');
         } catch (error) {
           console.error('Error al subir el archivo:', error);
         }

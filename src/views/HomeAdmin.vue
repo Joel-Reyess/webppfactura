@@ -1,10 +1,11 @@
 <template>
     <div>
-        <AdminNavbar @toggle-sidebar="toggleSidebar"></AdminNavbar>
+        <AdminNavbar @toggle-sidebar="toggleSidebar" @search="handleSearch"></AdminNavbar>
         <div class="container-fluid">
             <div class="row flex-nowrap">
-                <AdminSidebar :is-sidebar-open="isSidebarOpen"></AdminSidebar>
+                <AdminSidebar :is-sidebar-open="isSidebarOpen" @file-uploaded="isUploadSuccessModalOpen = true"></AdminSidebar>
                 <div class="col main-content" :class="{ 'expanded': !isSidebarOpen }">
+                  <div v-if="!isSearchActive">
                     <div class="row">
                         <div class="col-md-4 mb-4" v-for="documento in documentos" :key="documento.iddocumento">
                             <div class="card">
@@ -30,7 +31,33 @@
                         </div>
                     </div>
                 </div>
+                <div v-else>
+                  <div class="row">
+                    <div class="col-md-4 mb-4" v-for="documento in filteredDocumentos" :key="documento.iddocumento">
+                      <div class="card">
+                        <div class="card-body">
+                          <h5 class="card-title">{{ documento.nombredocumento }}</h5>
+                          <h6 class="card-subtitle mb-2 text-muted">
+                            {{ documento.tipodocumento }} - {{ documento.tamanodocumento }} bytes
+                          </h6>
+                          <p class="card-text">
+                            Subido el: {{ new Date(documento.fechasubida).toLocaleDateString() }}
+                          </p>
+                          <a href="#" class="card-link" @click.prevent="openModal(documento.rutadocumento)">Ver archivo</a>
+                          <div class="dropdown">
+                            <a href="#" class="card-link dropdown-toggle" data-bs-toggle="dropdown">Opciones</a>
+                            <ul class="dropdown-menu">
+                              <li><a class="dropdown-item" href="#" @click.prevent="abrirModalAsignarCarpeta(documento)">Asignar a carpeta</a></li>
+                              <li><a class="dropdown-item text-danger" href="#" @click.prevent="abrirModalConfirmacion(documento)">Eliminar</a></li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              </div>
             </div>
+          </div>
         </div>
         <ConfirmationModal
           :isOpen="isConfirmationModalOpen"
@@ -54,12 +81,20 @@
           @cerrar-modal="cerrarModalCarpeta"
           @seleccionar-carpeta="asignarACarpeta"
         />
+        <ConfirmationModal
+          :isOpen="isUploadSuccessModalOpen"
+          title="Archivo subido"
+          message="El archivo se ha subido correctamente."
+          :showConfirmButton="false"
+          @close-modal="isUploadSuccessModalOpen = false"
+        />
     </div>
 </template>
 
 <script>
 import AdminNavbar from '../components/AdminNavbar.vue';
 import AdminSidebar from '../components/AdminSidebar.vue';
+//import SearchResults from '../components/SearchResults.vue';
 import axios from '../utils/axios.js';
 import ModalDoc from '../components/ModalDoc.vue';
 import SeleccionarCarpetaModal from '../components/SeleccionarCarpetaModal.vue';
@@ -70,6 +105,7 @@ export default {
     components: {
         AdminNavbar,
         AdminSidebar,
+        //SearchResults,
         ModalDoc,
         SeleccionarCarpetaModal,
         ConfirmationModal
@@ -78,6 +114,9 @@ export default {
         return {
             isSidebarOpen: true,
             documentos: [],
+            filteredDocumentos: [], // Lista filtrada de documentos
+            searchTerm: "",
+            isSearchActive: false,
             isModalOpen: false,
             selectedFileUrl: '',
             isModalCarpetaOpen: false,
@@ -86,6 +125,7 @@ export default {
             isConfirmationModalOpen: false, // Estado para el modal de confirmación
             isSuccessModalOpen: false, // Estado para el modal de éxito
             documentoAEliminar: null,
+            isUploadSuccessModalOpen: false,
         };
     },
     methods: {
@@ -97,10 +137,31 @@ export default {
             try {
                 const response = await axios.get('/api/documentos');
                 this.documentos = response.data;
+                //this.filteredDocumentos = response.data;
                 this.obtenerDocumentos();
-            } catch (error) {
+              } catch (error) {
                 console.log("Error al obtener los documentos", error);
-            }
+              }
+        },
+        handleSearch(searchTerm) {
+          if (typeof searchTerm !== "string") {
+            console.error("El término de búsqueda no es una cadena válida:", searchTerm);
+            return;
+          }
+        
+          this.searchTerm = searchTerm.toLowerCase();
+        
+          if (this.searchTerm === "") {
+            // Si el término de búsqueda está vacío, muestra todos los documentos
+            this.isSearchActive = false;
+            this.filteredDocumentos = this.documentos;
+          } else {
+            // Filtra los documentos basados en el término de búsqueda
+            this.isSearchActive = true;
+            this.filteredDocumentos = this.documentos.filter((documento) =>
+              documento.nombredocumento.toLowerCase().includes(this.searchTerm)
+            );
+          }
         },
 
         async obtenerCarpetas() {
@@ -137,7 +198,7 @@ export default {
               iddocumento: this.documentoSeleccionado.iddocumento,
               idcarpeta: carpeta.idcarpeta,
             });
-            this.obtenerDocumentos(); // Actualiza la lista de documentos
+            await this.obtenerDocumentos(); // Actualiza la lista de documentos
             this.cerrarModalCarpeta(); // Cierra el modal de selección de carpeta
           } catch (error) {
             console.error('Error al asignar el archivo a la carpeta:', error);

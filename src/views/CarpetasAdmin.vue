@@ -1,11 +1,12 @@
 <template>
   <div>
-    <AdminNavbar @toggle-sidebar="toggleSidebar"></AdminNavbar>
+    <AdminNavbar @toggle-sidebar="toggleSidebar" @search="handleSearch"></AdminNavbar>
     <div class="container-fluid">
       <div class="row flex-nowrap">
         <AdminSidebar :is-sidebar-open="isSidebarOpen"></AdminSidebar>
         <div class="col main-content" :class="{ 'expanded': !isSidebarOpen }">
           <h2>Carpetas</h2>
+          <div v-if="!isSearchActive">
           <div class="row">
             <div class="col-md-4 mb-4" v-for="carpeta in carpetas" :key="carpeta.idcarpeta">
               <div class="card">
@@ -26,6 +27,29 @@
             </div>
           </div>
         </div>
+        <div v-else>
+          <div class="row">
+            <div class="col-md-4 mb-4" v-for="carpeta in filteredCarpetas" :key="carpeta.idcarpeta">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">{{ carpeta.nombrecarpeta }}</h5>
+                  <h6 class="card-subtitle mb-2 text-muted">
+                    {{ carpeta.descripcioncarpeta }}
+                  </h6>
+                  <router-link
+                    :to="{ name: 'ArchivosCarpeta', params: { id: carpeta.idcarpeta } }"
+                    class="card-link"
+                  >
+                    Abrir carpeta
+                  </router-link>
+                  <a href="#" class="card-link">Opciones</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
       </div>
     </div>
   </div>
@@ -45,6 +69,9 @@ export default {
   data() {
     return {
       carpetas: [],
+      filteredCarpetas: [],
+      searchTerm: "",
+      isSearchActive: false,
       isSidebarOpen: true,
     };
   },
@@ -57,8 +84,30 @@ export default {
       try {
         const response = await axios.get('/api/folders');
         this.carpetas = response.data;
+        this.filteredCarpetas = response.data;
+        //this.obtenerCarpetas();
       } catch (error) {
         console.error('Error al obtener las carpetas:', error);
+      }
+    },
+    handleSearch(searchTerm) {
+      if (typeof searchTerm !== "string") {
+        console.error("El término de búsqueda no es una cadena válida:", searchTerm);
+        return;
+      }
+    
+      this.searchTerm = searchTerm.toLowerCase();
+    
+      if (this.searchTerm === "") {
+        // Si el término de búsqueda está vacío, muestra todas las carpetas
+        this.isSearchActive = false;
+        this.filteredCarpetas = this.carpetas;
+      } else {
+        // Filtra las carpetas basadas en el término de búsqueda
+        this.isSearchActive = true;
+        this.filteredCarpetas = this.carpetas.filter((carpeta) =>
+          carpeta.nombrecarpeta.toLowerCase().includes(this.searchTerm)
+        );
       }
     },
   },

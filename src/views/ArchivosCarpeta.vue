@@ -1,6 +1,6 @@
 <template>
   <div>
-    <AdminNavbar @toggle-sidebar="toggleSidebar"></AdminNavbar>
+    <AdminNavbar @toggle-sidebar="toggleSidebar" @search="handleSearch"></AdminNavbar>
     <div class="container-fluid">
       <div class="row flex-nowrap">
         <AdminSidebar :is-sidebar-open="isSidebarOpen"></AdminSidebar>
@@ -19,6 +19,7 @@
                 @change="handleFileUpload"
             />
           </div>
+          <div v-if="!isSearchActive">
           <div class="row">
             <div class="col-md-4 mb-4" v-for="documento in documentos" :key="documento.iddocumento">
               <div class="card">
@@ -41,6 +42,32 @@
               </div>
             </div>
           </div>
+          </div>
+          <div v-else>
+                  <div class="row">
+                    <div class="col-md-4 mb-4" v-for="documento in filteredDocumentos" :key="documento.iddocumento">
+                      <div class="card">
+                        <div class="card-body">
+                          <h5 class="card-title">{{ documento.nombredocumento }}</h5>
+                          <h6 class="card-subtitle mb-2 text-muted">
+                            {{ documento.tipodocumento }} - {{ documento.tamanodocumento }} bytes
+                          </h6>
+                          <p class="card-text">
+                            Subido el: {{ new Date(documento.fechasubida).toLocaleDateString() }}
+                          </p>
+                          <a href="#" class="card-link" @click.prevent="openModal(documento.rutadocumento)">Ver archivo</a>
+                          <div class="dropdown">
+                            <a href="#" class="card-link dropdown-toggle" data-bs-toggle="dropdown">Opciones</a>
+                            <ul class="dropdown-menu">
+                              <li><a class="dropdown-item" href="#" @click.prevent="abrirModalAsignarCarpeta(documento)">Asignar a carpeta</a></li>
+                              <li><a class="dropdown-item text-danger" href="#" @click.prevent="abrirModalConfirmacion(documento)">Eliminar</a></li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              </div>
         </div>
       </div>
     </div>
@@ -59,12 +86,20 @@
       :showConfirmButton="false"
       @close-modal="cerrarModalExito"
     />
+    <ConfirmationModal
+      :isOpen="isUploadSuccessModalOpen"
+      title="Archivo subido"
+      message="El archivo se ha subido correctamente."
+      :showConfirmButton="false"
+      @close-modal="isUploadSuccessModalOpen = false"
+    />
   </div>
 </template>
 
 <script>
 import AdminNavbar from '../components/AdminNavbar.vue';
 import AdminSidebar from '../components/AdminSidebar.vue';
+//import SearchResults from '../components/SearchResults.vue';
 import axios from '../utils/axios.js';
 import ModalDoc from '../components/ModalDoc.vue';
 import ConfirmationModal from '../components/ConfirmationModal.vue';
@@ -75,11 +110,15 @@ export default {
     AdminNavbar,
     AdminSidebar,
     ModalDoc,
-    ConfirmationModal
+    ConfirmationModal,
+    //SearchResults
   },
   data() {
     return {
       documentos: [],
+      filteredDocumentos: [],
+      searchTerm: "",
+      isSearchActive: false,
       isModalOpen: false,
       selectedFileUrl: '',
       selectedFile: null,
@@ -87,6 +126,7 @@ export default {
       isConfirmationModalOpen: false,
       isSuccessModalOpen: false,
       documentoAEliminar: null,
+      isUploadSuccessModalOpen: false,
     };
   },
   methods: {
@@ -135,7 +175,8 @@ export default {
         });
         console.log('Archivo subido con éxito:', response.data);
         this.obtenerDocumentosDeCarpeta(); 
-        alert('Archivo subido con éxito');
+        this.isUploadSuccessModalOpen = true;
+        //alert('Archivo subido con éxito');
       } catch (error) {
         console.error('Error al subir el archivo:', error);
         alert('Error al subir el archivo');
@@ -164,6 +205,26 @@ export default {
     },
     cerrarModalExito() {
       this.isSuccessModalOpen = false;
+    },
+    handleSearch(searchTerm) {
+      if (typeof searchTerm !== "string") {
+        console.error("El término de búsqueda no es una cadena válida:", searchTerm);
+        return;
+      }
+
+      this.searchTerm = searchTerm.toLowerCase();
+
+      if (this.searchTerm === "") {
+        // Si el término de búsqueda está vacío, muestra todos los documentos
+        this.isSearchActive = false;
+        this.filteredDocumentos = this.documentos;
+      } else {
+        // Filtra los documentos basados en el término de búsqueda
+        this.isSearchActive = true;
+        this.filteredDocumentos = this.documentos.filter((documento) =>
+          documento.nombredocumento.toLowerCase().includes(this.searchTerm)
+        );
+      }
     },
   },
   mounted() {
