@@ -72,7 +72,10 @@ export default {
 
     const logout = () => {
       console.log("Cerrando sesión...");
-      // Aquí puedes agregar la lógica para cerrar sesión
+      // Elimina el token del localStorage
+      localStorage.removeItem('token');
+      // Redirige al usuario a la página de inicio de sesión
+      router.push({ name: "Home" });
     };
     const handleSearch = () => {
       emit("search", searchTerm.value); // Emite el término de búsqueda

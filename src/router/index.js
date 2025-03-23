@@ -13,12 +13,14 @@ const routes = [
     {
         path:'/HomeAdmin',
         name:'HomeAdmin',
-        component: HomeAdmin
+        component: HomeAdmin,
+        meta: { requiresAuth: true },
     },
     {
         path:'/CarpetasAdmin',
         name:'CarpetasAdmin',
-        component: CarpetasAdmin
+        component: CarpetasAdmin,
+        meta: { requiresAuth: true },
     },
     {
         path:'/RegisterUser',
@@ -29,12 +31,24 @@ const routes = [
       path: '/carpeta/:id',
       name: 'ArchivosCarpeta',
       component: () => import('../views/ArchivosCarpeta.vue'),
+      meta: { requiresAuth: true },
     },
 ]
 
 const router = createRouter({
     history: createWebHistory(),
     routes
-})
+});
 
-export default router
+router.beforeEach((to, from, next) => {
+    const isAuthenticated = localStorage.getItem('token'); // Verifica si hay un token en localStorage
+  
+    if (to.meta.requiresAuth && !isAuthenticated) {
+      // Si la ruta requiere autenticación y el usuario no está autenticado
+      next({ name: 'Home', query: { redirect: to.fullPath } }); // Redirige al usuario a la página de inicio de sesión
+    } else {
+      next(); // Permite el acceso a la ruta
+    }
+  });
+
+export default router;

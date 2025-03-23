@@ -37,17 +37,15 @@
                       <label class="form-label" for="password">Contraseña</label>
                       <small v-if="errors.password" class="text-danger">{{ errors.password }}</small>
                     </div>
-                    <div class=" form-outline mb-4">
+                    <!-- <div class=" form-outline mb-4">
                       <button type="button" @click="goToRegister" data-mdb-button-init data-mdb-ripple-init class="btn btn-secondary btn-block mb-4">
                         Registrate aqui
                       </button>
-                    </div>
+                    </div> -->
                         <!-- Submit button -->
-                    <button type="button" @click="goToHome" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block mb-4">
-                      Iniciar sesión
-                    </button>
-                
-
+                        <button type="submit" class="btn btn-primary btn-block mb-4">
+                          Iniciar sesión
+                        </button>
                   </form>
                 </div>
               </div>
@@ -61,6 +59,7 @@
 <script>
 import { ref } from 'vue';
 import router from '../router/index.js';
+import axios from '../utils/axios.js';
 export default {
   setup(){
 
@@ -93,11 +92,27 @@ export default {
       return Object.keys(errors.value).length === 0;
     };
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
       if (validateForm()) {
-        console.log("Formulario válido, enviando datos...");
-        // Aquí puedes hacer una petición a un backend para autenticar al usuario
-        router.push({ name: "HomeAdmin" });
+        try {
+          console.log("Enviando credenciales al backend...");
+          const response = await axios.post('/api/auth/login', {
+            correousuario: form.value.email,
+            password: form.value.password,
+          });
+
+          console.log("Respuesta del backend:", response.data);
+
+          // Almacena el token en localStorage
+          localStorage.setItem('token', response.data.token);
+          console.log("Token almacenado en localStorage:", localStorage.getItem('token'));
+
+          // Redirige al usuario a la ruta protegida
+          router.push({ name: "HomeAdmin" });
+        } catch (error) {
+          console.error("Error al iniciar sesión:", error);
+          alert("Error al iniciar sesión");
+        }
       } else {
         console.log("Errores en el formulario:", errors.value);
       }

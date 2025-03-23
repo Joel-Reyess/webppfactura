@@ -2,16 +2,13 @@
     <div>
         <!-- Section: Design Block -->
         <section class="text-center">
-          <div class="card mx-4 mx-md-5 shadow-5-strong bg-body-tertiary" style="
-                
-                backdrop-filter: blur(30px);
-                ">
+          <div class="card mx-4 mx-md-5 shadow-5-strong bg-body-tertiary" style="backdrop-filter: blur(30px);">
             <div class="card-body py-5 px-md-4">
             <img src="../assets/pastelesdegaby.png" alt="Los Pasteles Caseros de Gaby" class="logo-img">
               <div class="row d-flex justify-content-center">
                 <div class="col-lg-8">
                   <h2 class="fw-bold mb-5">Registrate aqui</h2>
-                  <form @submit.prevent="handleLogin">
+                  <form @submit.prevent="handleRegister">
                     <!-- 2 column grid layout with text inputs for the first and last names -->
                     <!-- Usuario -->
                     <div class="row">
@@ -38,14 +35,14 @@
                       <small v-if="errors.password" class="text-danger">{{ errors.password }}</small>
                     </div>
                     <div class="form-outline mb-4">
-                      <input type="password" id="password" class="form-control" v-model="form.password" required />
-                      <label class="form-label" for="password">Confirmar contraseña</label>
-                      <small v-if="errors.password" class="text-danger">{{ errors.password }}</small>
+                      <input type="password" id="confirmPassword" class="form-control" v-model="form.confirmPassword" required />
+                      <label class="form-label" for="confirmPassword">Confirmar contraseña</label>
+                      <small v-if="errors.confirmPassword" class="text-danger">{{ errors.confirmPassword }}</small>
                     </div>
                         <!-- Submit button -->
-                    <button type="button" @click="goToLogin" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block mb-4">
-                      Registrar
-                    </button>
+                        <button type="submit" class="btn btn-primary btn-block mb-4">
+                          Registrar
+                        </button>
                   </form>
                 </div>
               </div>
@@ -59,16 +56,19 @@
 <script>
 import { ref } from 'vue';
 import router from '../router/index.js';
+import axios from '../utils/axios.js';
 export default {
   setup(){
 
     const form = ref({
       username: "",
       email: "",
-      password: ""
+      password: "",
+      confirmPassword: "",
     });
 
     const errors = ref({});
+
     const validateForm = () => {
       errors.value = {};
 
@@ -88,6 +88,10 @@ export default {
         errors.value.password = "La contraseña debe tener al menos 6 caracteres";
       }
 
+      if (form.value.password !== form.value.confirmPassword) {
+        errors.value.confirmPassword = "Las contraseñas no coinciden";
+      }
+
       return Object.keys(errors.value).length === 0;
     };
 
@@ -101,6 +105,25 @@ export default {
       }
     };
 
+    const handleRegister = async () => {
+      if (validateForm()) {
+        try {
+          const response = await axios.post('/api/auth/register', {
+            nombreusuario: form.value.username, // Asegúrate de que coincida con el backend
+            correousuario: form.value.email,    // Asegúrate de que coincida con el backend
+            password: form.value.password,
+          });
+          console.log("Usuario registrado:", response.data);
+          router.push({ name: "Home" }); // Redirige al usuario después del registro
+        } catch (error) {
+          console.error("Error al registrar el usuario:", error);
+          alert("Error al registrar el usuario");
+        }
+      } else {
+        console.log("Errores en el formulario:", errors.value);
+      }
+    };
+
     const goToLogin = () => {
     router.push({ name:'Home'})
     }
@@ -108,7 +131,8 @@ export default {
       form,
       errors,
       handleLogin,
-      goToLogin
+      handleRegister,
+      goToLogin,
     }
   }
 }
