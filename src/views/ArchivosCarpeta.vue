@@ -103,6 +103,7 @@ import AdminSidebar from '../components/AdminSidebar.vue';
 import axios from '../utils/axios.js';
 import ModalDoc from '../components/ModalDoc.vue';
 import ConfirmationModal from '../components/ConfirmationModal.vue';
+import { useDocumentStore } from '../stores/documentStore';
 
 export default {
   name: 'ArchivosCarpeta',
@@ -115,7 +116,7 @@ export default {
   },
   data() {
     return {
-      documentos: [],
+      //documentos: [],
       filteredDocumentos: [],
       searchTerm: "",
       isSearchActive: false,
@@ -129,6 +130,16 @@ export default {
       isUploadSuccessModalOpen: false,
     };
   },
+  setup() {
+    const documentStore = useDocumentStore();
+    return { documentStore };
+  },
+  computed: {
+    documentos() {
+      // Usamos el store para obtener los documentos de la carpeta actual
+      return this.documentStore.documentosPorCarpeta[this.$route.params.id] || [];
+    }
+  },
   methods: {
 
     toggleSidebar(){
@@ -136,15 +147,30 @@ export default {
     },
     async obtenerDocumentosDeCarpeta() {
       try {
-        const response = await axios.get(`/api/documentos/carpeta/${this.$route.params.id}`);
-        this.documentos = response.data;
+        await this.documentStore.fetchDocumentsByFolder(this.$route.params.id);
       } catch (error) {
         console.error('Error al obtener los documentos de la carpeta:', error);
+        if (!navigator.onLine) {
+          alert('Modo offline: mostrando datos cacheados');
+        }
       }
     },
     openModal(fileName) {
-      this.selectedFileUrl = `http://localhost:3000/uploads/${fileName}`;
-      this.isModalOpen = true;
+      if (!navigator.onLine) {
+        // Intentar obtener del cache
+        caches.match(`http://localhost:3000/uploads/${fileName}`)
+          .then(response => {
+            if (response) {
+              this.selectedFileUrl = URL.createObjectURL(response.blob());
+              this.isModalOpen = true;
+            } else {
+              alert('El archivo no está disponible offline');
+            }
+          });
+      } else {
+        this.selectedFileUrl = `http://localhost:3000/uploads/${fileName}`;
+        this.isModalOpen = true;
+      }
     },
     closeModal() {
       this.isModalOpen = false;

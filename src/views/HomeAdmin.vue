@@ -99,6 +99,8 @@ import axios from '../utils/axios.js';
 import ModalDoc from '../components/ModalDoc.vue';
 import SeleccionarCarpetaModal from '../components/SeleccionarCarpetaModal.vue';
 import ConfirmationModal from '../components/ConfirmationModal.vue';
+import { useDocumentStore } from '../stores/documentStore';
+import { useFolderStore } from '../stores/folderStore';
 
 export default {
     name: 'HomeAdmin',
@@ -110,17 +112,30 @@ export default {
         SeleccionarCarpetaModal,
         ConfirmationModal
     },
+    setup(){
+      const documentStore = useDocumentStore();
+      const folderStore = useFolderStore();
+      return { documentStore, folderStore };
+    },
+    computed: {
+        documentos() {
+            return this.documentStore.documentos;
+        },
+        carpetas() {
+            return this.folderStore.carpetas;
+        }
+    },
     data() {
         return {
             isSidebarOpen: true,
-            documentos: [],
+            ///documentos: [],
             filteredDocumentos: [], // Lista filtrada de documentos
             searchTerm: "",
             isSearchActive: false,
             isModalOpen: false,
             selectedFileUrl: '',
             isModalCarpetaOpen: false,
-            carpetas: [],
+            //carpetas: [],
             documentoSeleccionado: null,
             isConfirmationModalOpen: false, // Estado para el modal de confirmación
             isSuccessModalOpen: false, // Estado para el modal de éxito
@@ -133,15 +148,12 @@ export default {
             this.isSidebarOpen = !this.isSidebarOpen;
         },
 
-        async obtenerDocumentos(){
+        async obtenerDocumentos() {
             try {
-                const response = await axios.get('/api/documentos');
-                this.documentos = response.data;
-                //this.filteredDocumentos = response.data;
-                this.obtenerDocumentos();
-              } catch (error) {
+                await this.documentStore.fetchDocuments();
+            } catch (error) {
                 console.log("Error al obtener los documentos", error);
-              }
+            }
         },
         handleSearch(searchTerm) {
           if (typeof searchTerm !== "string") {
@@ -165,12 +177,11 @@ export default {
         },
 
         async obtenerCarpetas() {
-          try {
-            const response = await axios.get('/api/folders');
-            this.carpetas = response.data;
-          } catch (error) {
-            console.log('Error al obtener las carpetas', error);
-          }
+            try {
+                await this.folderStore.fetchFolders();
+            } catch (error) {
+                console.log('Error al obtener las carpetas', error);
+            }
         },
 
         openModal(fileName) {

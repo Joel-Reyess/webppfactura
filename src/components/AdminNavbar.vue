@@ -35,7 +35,8 @@
 <script>
 import { ref, onMounted, onUnmounted } from "vue";
 import router from "../router/index.js";
-import myLogoUser from "../assets/usericon.svg";
+import myLogoUser from "../assets/usericon.svg?url";
+import { isOnline, setupNetworkListener } from '../utils/network';
 
 export default {
   setup(props, {emit}) {
@@ -45,6 +46,12 @@ export default {
     const dropdown = ref(null);
     const dropdownMenu = ref(null);
     const searchTerm = ref("");
+
+    const onlineStatus = ref(isOnline());
+
+    const updateNetworkStatus = () => {
+      onlineStatus.value = isOnline();
+    };
 
     const goToHome = () => {
       router.push({ name: "HomeAdmin" });
@@ -94,10 +101,13 @@ export default {
 
     onMounted(() => {
       document.addEventListener("click", closeDropdown);
+      setupNetworkListener(updateNetworkStatus);
     });
 
     onUnmounted(() => {
       document.removeEventListener("click", closeDropdown);
+      window.removeEventListener('online', updateNetworkStatus);
+      window.removeEventListener('offline', updateNetworkStatus);
     });
 
     return {
@@ -113,6 +123,7 @@ export default {
       myLogoUser,
       searchTerm,
       handleSearch,
+      onlineStatus,
     };
   },
 };

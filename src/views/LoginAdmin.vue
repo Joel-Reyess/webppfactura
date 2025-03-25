@@ -95,26 +95,38 @@ export default {
     const handleLogin = async () => {
       if (validateForm()) {
         try {
-          console.log("Enviando credenciales al backend...");
+          // Verificar si estamos offline
+          if (navigator.onLine === false) {
+            const cachedAuth = localStorage.getItem('offlineAuth');
+            if (cachedAuth) {
+              const { email, token } = JSON.parse(cachedAuth);
+              if (email === form.value.email) {
+                localStorage.setItem('token', token);
+                router.push({ name: "HomeAdmin" });
+                return;
+              }
+            }
+            alert('No hay conexión y no hay credenciales en cache');
+            return;
+          }
+        
           const response = await axios.post('/api/auth/login', {
             correousuario: form.value.email,
             password: form.value.password,
           });
-
-          console.log("Respuesta del backend:", response.data);
-
-          // Almacena el token en localStorage
+        
+          // Guardar en cache para uso offline
+          localStorage.setItem('offlineAuth', JSON.stringify({
+            email: form.value.email,
+            token: response.data.token
+          }));
+        
           localStorage.setItem('token', response.data.token);
-          console.log("Token almacenado en localStorage:", localStorage.getItem('token'));
-
-          // Redirige al usuario a la ruta protegida
           router.push({ name: "HomeAdmin" });
         } catch (error) {
           console.error("Error al iniciar sesión:", error);
           alert("Error al iniciar sesión");
         }
-      } else {
-        console.log("Errores en el formulario:", errors.value);
       }
     };
 

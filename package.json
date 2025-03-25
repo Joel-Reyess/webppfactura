@@ -13,6 +13,8 @@
     "bootstrap": "5.3.3",
     "core-js": "^3.8.3",
     "pdfjs-dist": "^4.10.38",
+    "pinia": "^3.0.1",
+    "pinia-plugin-persistedstate": "^4.2.0",
     "register-service-worker": "^1.7.2",
     "vue": "^3.2.13",
     "vue-pdf": "^4.3.0",
@@ -28,7 +30,17 @@
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-plugin-pwa": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
+    "@vue/compiler-sfc": "^3.5.13",
     "eslint": "^7.32.0",
-    "eslint-plugin-vue": "^8.0.3"
+    "eslint-plugin-vue": "^8.0.3",
+    "file-loader": "^6.2.0",
+    "url-loader": "^4.1.1",
+    "vue-svg-loader": "^0.16.0",
+    "workbox-cacheable-response": "^7.3.0",
+    "workbox-expiration": "^7.3.0",
+    "workbox-precaching": "^7.3.0",
+    "workbox-routing": "^7.3.0",
+    "workbox-strategies": "^7.3.0",
+    "workbox-webpack-plugin": "^7.3.0"
   }
 }

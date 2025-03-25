@@ -59,6 +59,7 @@
 import AdminNavbar from '../components/AdminNavbar.vue';
 import AdminSidebar from '../components/AdminSidebar.vue';
 import axios from '../utils/axios.js';
+import { useFolderStore } from '../stores/folderStore';
 
 export default {
   name: 'CarpetasAdmin',
@@ -66,54 +67,92 @@ export default {
     AdminNavbar,
     AdminSidebar,
   },
+  setup() {
+    const folderStore = useFolderStore();
+    return { folderStore };
+  },
+  computed: {
+    carpetas() {
+      return this.folderStore.carpetas || [];
+    }
+  },
   data() {
     return {
-      carpetas: [],
       filteredCarpetas: [],
       searchTerm: "",
       isSearchActive: false,
       isSidebarOpen: true,
+      isOnline: navigator.onLine,
     };
   },
   methods: {
-
     toggleSidebar() {
-        this.isSidebarOpen = !this.isSidebarOpen;
+      this.isSidebarOpen = !this.isSidebarOpen;
     },
     async obtenerCarpetas() {
-      try {
-        const response = await axios.get('/api/folders');
-        this.carpetas = response.data;
-        this.filteredCarpetas = response.data;
-        //this.obtenerCarpetas();
-      } catch (error) {
-        console.error('Error al obtener las carpetas:', error);
-      }
-    },
-    handleSearch(searchTerm) {
-      if (typeof searchTerm !== "string") {
-        console.error("El término de búsqueda no es una cadena válida:", searchTerm);
+  try {
+    if (!this.isOnline) {
+      const cached = localStorage.getItem('carpetasCache');
+      if (cached) {
+        this.folderStore.carpetas = JSON.parse(cached);
+        this.filteredCarpetas = JSON.parse(cached);
+        
+        // Precargar el chunk necesario para la vista ArchivosCarpeta
+        if ('serviceWorker' in navigator) {
+          try {
+            await navigator.serviceWorker.ready.then(registration => {
+              registration.active.postMessage({
+                action: 'precache',
+                urls: ['/js/src_views_ArchivosCarpeta_vue.js']
+              });
+            });
+          } catch (error) {
+            console.error('Error al precachear chunks:', error);
+          }
+        }
         return;
       }
-    
+      throw new Error('No hay conexión y no hay datos en caché');
+    }
+
+    const response = await axios.get('/api/folders');
+    this.folderStore.carpetas = response.data;
+    this.filteredCarpetas = response.data;
+    localStorage.setItem('carpetasCache', JSON.stringify(response.data));
+  } catch (error) {
+    console.error('Error al obtener carpetas:', error);
+    if (!this.isOnline) {
+      alert('Modo offline: mostrando datos cacheados');
+    }
+  }
+},
+    handleSearch(searchTerm) {
+      if (typeof searchTerm !== "string") return;
+      
       this.searchTerm = searchTerm.toLowerCase();
-    
-      if (this.searchTerm === "") {
-        // Si el término de búsqueda está vacío, muestra todas las carpetas
-        this.isSearchActive = false;
-        this.filteredCarpetas = this.carpetas;
-      } else {
-        // Filtra las carpetas basadas en el término de búsqueda
-        this.isSearchActive = true;
-        this.filteredCarpetas = this.carpetas.filter((carpeta) =>
-          carpeta.nombrecarpeta.toLowerCase().includes(this.searchTerm)
-        );
-      }
+      this.isSearchActive = this.searchTerm !== "";
+      
+      this.filteredCarpetas = this.isSearchActive
+        ? this.carpetas.filter(c => 
+            c.nombrecarpeta.toLowerCase().includes(this.searchTerm))
+        : [...this.carpetas];
     },
+    updateOnlineStatus() {
+      this.isOnline = navigator.onLine;
+      if (this.isOnline) {
+        this.obtenerCarpetas(); // Actualizar datos cuando vuelve la conexión
+      }
+    }
   },
   mounted() {
     this.obtenerCarpetas();
+    window.addEventListener('online', this.updateOnlineStatus);
+    window.addEventListener('offline', this.updateOnlineStatus);
   },
+  beforeUnmount() {
+    window.removeEventListener('online', this.updateOnlineStatus);
+    window.removeEventListener('offline', this.updateOnlineStatus);
+  }
 };
 </script>
 

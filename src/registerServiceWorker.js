@@ -1,32 +1,44 @@
 /* eslint-disable no-console */
-
 import { register } from 'register-service-worker'
+import { isOnline } from './utils/network'
+
+const notifyUserAboutUpdate = (worker) => {
+  const shouldUpdate = confirm('Hay una nueva versión disponible. ¿Deseas actualizar?');
+  if (shouldUpdate) {
+    worker.postMessage({ action: 'skipWaiting' });
+  }
+};
 
 if (process.env.NODE_ENV === 'production') {
   register(`${process.env.BASE_URL}service-worker.js`, {
-    ready () {
-      console.log(
-        'App is being served from cache by a service worker.\n' +
-        'For more details, visit https://goo.gl/AFskqB'
-      )
+    ready() {
+      console.log('App está siendo servida desde el cache')
+      console.log(`Estado conexión: ${isOnline() ? 'Online' : 'Offline'}`)
     },
-    registered () {
-      console.log('Service worker has been registered.')
+    registered(registration) {
+      console.log('SW registrado')
     },
-    cached () {
-      console.log('Content has been cached for offline use.')
+    cached() {
+      console.log('Contenido cacheado para offline')
     },
-    updatefound () {
-      console.log('New content is downloading.')
+    updatefound() {
+      console.log('Nuevo contenido descargándose')
     },
-    updated () {
-      console.log('New content is available; please refresh.')
+    updated(registration) {
+      notifyUserAboutUpdate(registration.waiting);
+      console.log('Nuevo contenido disponible');
     },
-    offline () {
-      console.log('No internet connection found. App is running in offline mode.')
+    offline() {
+      console.log('Modo offline activado')
     },
-    error (error) {
-      console.error('Error during service worker registration:', error)
+    error(error) {
+      console.error('Error en SW:', error)
     }
-  })
+  });
+  let refreshing;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    window.location.reload();
+    refreshing = true;
+  });
 }
