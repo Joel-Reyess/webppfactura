@@ -146,32 +146,50 @@ export default {
       this.isSidebarOpen = !this.isSidebarOpen;
     },
     async obtenerDocumentosDeCarpeta() {
-      try {
-        await this.documentStore.fetchDocumentsByFolder(this.$route.params.id);
-      } catch (error) {
-        console.error('Error al obtener los documentos de la carpeta:', error);
-        if (!navigator.onLine) {
-          alert('Modo offline: mostrando datos cacheados');
+  try {
+    await this.documentStore.fetchDocumentsByFolder(this.$route.params.id);
+  } catch (error) {
+    console.error('Error al obtener los documentos de la carpeta:', error);
+    if (!navigator.onLine) {
+      // Intenta precachear el chunk si está offline
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          registration.active.postMessage({
+            action: 'precache',
+            urls: ['/js/src_views_ArchivosCarpeta_vue.js']
+          });
+        } catch (swError) {
+          console.error('Error con Service Worker:', swError);
         }
       }
-    },
-    openModal(fileName) {
-      if (!navigator.onLine) {
-        // Intentar obtener del cache
-        caches.match(`http://localhost:3000/uploads/${fileName}`)
-          .then(response => {
-            if (response) {
-              this.selectedFileUrl = URL.createObjectURL(response.blob());
-              this.isModalOpen = true;
-            } else {
-              alert('El archivo no está disponible offline');
-            }
-          });
-      } else {
-        this.selectedFileUrl = `http://localhost:3000/uploads/${fileName}`;
+      alert('Modo offline: mostrando datos cacheados');
+    }
+  }
+},
+async openModal(fileName) {
+  if (!navigator.onLine) {
+    try {
+      // Intenta obtener del cache del service worker
+      const cache = await caches.open('dynamic-chunks');
+      const pdfUrl = `http://localhost:3000/uploads/${fileName}`;
+      const cachedPdf = await cache.match(pdfUrl);
+      
+      if (cachedPdf) {
+        this.selectedFileUrl = URL.createObjectURL(await cachedPdf.blob());
         this.isModalOpen = true;
+      } else {
+        throw new Error('Archivo no disponible offline');
       }
-    },
+    } catch (error) {
+      console.error('Error offline:', error);
+      alert('Para ver este archivo offline, debes abrirlo primero con conexión');
+    }
+  } else {
+    this.selectedFileUrl = `http://localhost:3000/uploads/${fileName}`;
+    this.isModalOpen = true;
+  }
+},
     closeModal() {
       this.isModalOpen = false;
       this.selectedFileUrl = '';

@@ -4,10 +4,13 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 module.exports = defineConfig({
   transpileDependencies: true,
   configureWebpack: {
+    performance: {
+      hints: false
+    },
     optimization: {
       splitChunks: {
         chunks: 'all',
-        maxSize: 244 * 1024,
+        maxSize: 500 * 1024,
         cacheGroups: {
           vendors: {
             test: /[\\/]node_modules[\\/]/,
@@ -32,38 +35,35 @@ module.exports = defineConfig({
   pwa: {
     name: 'Pasteles de Gaby',
     themeColor: '#F7F0F0',
-    msTileColor: '#F7F0F0',
-    appleMobileWebAppCapable: 'yes',
-    appleMobileWebAppStatusBarStyle: 'black',
-    mobileWebAppCapable: 'yes',
-    workboxPluginMode: 'InjectManifest',
+    workboxPluginMode: 'GenerateSW',
     workboxOptions: {
-      swSrc: './src/service-worker.js',
-      swDest: 'service-worker.js',
-      exclude: [
-        /\.map$/,
-        /_redirects/,
-        /_headers/,
-        /\.hot-update\.js$/,
-        /^manifest.*\.js$/
-      ],
-      include: [
-        /\.html$/,
-        /\.js$/,
-        /\.css$/,
-        /manifest\.json$/,
-        /\.(png|jpe?g|gif|webp|ico|svg)$/, // Añade svg aquí
-        /\.(woff2?|eot|ttf|otf)$/
+      skipWaiting: true,
+      clientsClaim: true,
+      exclude: [/\.map$/, /_redirects/],
+      runtimeCaching: [
+        {
+          urlPattern: /\/js\/.*(archivos-carpeta|src_views_ArchivosCarpeta_vue)\.js$/,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'dynamic-chunks',
+            expiration: {
+              maxEntries: 10,
+              maxAgeSeconds: 60 * 24 * 60 * 60 // 60 días
+            }
+          }
+        },
+        {
+          urlPattern: /\.(?:png|jpg|jpeg|svg)$/,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'images',
+            expiration: {
+              maxEntries: 60,
+              maxAgeSeconds: 30 * 24 * 60 * 60 // 30 días
+            }
+          }
+        }
       ]
     }
-  },
-  chainWebpack: config => {
-    // Elimina la configuración específica para SVG
-    // Esto dejará que webpack maneje los SVG por defecto
-    
-    config.plugin('eslint').tap(args => {
-      args[0].fix = true;
-      return args;
-    });
   }
 });

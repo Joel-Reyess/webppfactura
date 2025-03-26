@@ -3,7 +3,7 @@
     <AdminNavbar @toggle-sidebar="toggleSidebar" @search="handleSearch"></AdminNavbar>
     <div class="container-fluid">
       <div class="row flex-nowrap">
-        <AdminSidebar :is-sidebar-open="isSidebarOpen"></AdminSidebar>
+        <AdminSidebar :is-sidebar-open="isSidebarOpen" @folder-created="onFolderCreated"></AdminSidebar>
         <div class="col main-content" :class="{ 'expanded': !isSidebarOpen }">
           <h2>Carpetas</h2>
           <div v-if="!isSearchActive">
@@ -21,7 +21,12 @@
                   >
                     Abrir carpeta
                   </router-link>
-                  <a href="#" class="card-link">Opciones</a>
+                  <div class="dropdown">
+                    <a href="#" class="card-link dropdown-toggle" data-bs-toggle="dropdown">Opciones</a>
+                    <ul class="dropdown-menu">
+                      <li><a class="dropdown-item text-danger" href="#" @click.prevent="abrirModalConfirmacion(carpeta)">Eliminar</a></li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
@@ -42,13 +47,38 @@
                   >
                     Abrir carpeta
                   </router-link>
-                  <a href="#" class="card-link">Opciones</a>
+                  <div class="dropdown">
+                    <a href="#" class="card-link dropdown-toggle" data-bs-toggle="dropdown">Opciones</a>
+                    <ul class="dropdown-menu">
+                      <li><a class="dropdown-item text-danger" href="#" @click.prevent="abrirModalConfirmacion(carpeta)">Eliminar</a></li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
+        <ConfirmationModal
+          :isOpen="isConfirmationModalOpen"
+          title="Eliminar carpeta"
+          message="¿Estás seguro de que deseas eliminar esta carpeta? Todos los archivos dentro serán desasignados."
+          @close-modal="cerrarModalConfirmacion"
+          @confirm-action="eliminarCarpeta"
+        />
+        <ConfirmationModal
+          :isOpen="isSuccessModalOpen"
+          title="Carpeta eliminada"
+          message="La carpeta se ha eliminado correctamente."
+          :showConfirmButton="false"
+          @close-modal="cerrarModalExito"
+        />
+        <ConfirmationModal
+          :isOpen="isCreateSuccessModalOpen"
+          title="Carpeta creada"
+          message="La carpeta se ha creado correctamente."
+          :showConfirmButton="false"
+          @close-modal="isCreateSuccessModalOpen = false"
+        />
       </div>
       </div>
     </div>
@@ -60,12 +90,14 @@ import AdminNavbar from '../components/AdminNavbar.vue';
 import AdminSidebar from '../components/AdminSidebar.vue';
 import axios from '../utils/axios.js';
 import { useFolderStore } from '../stores/folderStore';
+import ConfirmationModal from '../components/ConfirmationModal.vue';
 
 export default {
   name: 'CarpetasAdmin',
   components: {
     AdminNavbar,
     AdminSidebar,
+    ConfirmationModal
   },
   setup() {
     const folderStore = useFolderStore();
@@ -83,6 +115,10 @@ export default {
       isSearchActive: false,
       isSidebarOpen: true,
       isOnline: navigator.onLine,
+      isConfirmationModalOpen: false,
+      isSuccessModalOpen: false,   
+      isCreateSuccessModalOpen: false,  
+      carpetaAEliminar: null   
     };
   },
   methods: {
@@ -90,42 +126,44 @@ export default {
       this.isSidebarOpen = !this.isSidebarOpen;
     },
     async obtenerCarpetas() {
-  try {
-    if (!this.isOnline) {
-      const cached = localStorage.getItem('carpetasCache');
-      if (cached) {
-        this.folderStore.carpetas = JSON.parse(cached);
-        this.filteredCarpetas = JSON.parse(cached);
-        
-        // Precargar el chunk necesario para la vista ArchivosCarpeta
-        if ('serviceWorker' in navigator) {
-          try {
-            await navigator.serviceWorker.ready.then(registration => {
-              registration.active.postMessage({
-                action: 'precache',
-                urls: ['/js/src_views_ArchivosCarpeta_vue.js']
-              });
-            });
-          } catch (error) {
-            console.error('Error al precachear chunks:', error);
-          }
-        }
-        return;
-      }
-      throw new Error('No hay conexión y no hay datos en caché');
-    }
+      try {
+        if (!this.isOnline) {
+          const cached = localStorage.getItem('carpetasCache');
+          if (cached) {
+            this.folderStore.carpetas = JSON.parse(cached);
+            this.filteredCarpetas = JSON.parse(cached);
 
-    const response = await axios.get('/api/folders');
-    this.folderStore.carpetas = response.data;
-    this.filteredCarpetas = response.data;
-    localStorage.setItem('carpetasCache', JSON.stringify(response.data));
-  } catch (error) {
-    console.error('Error al obtener carpetas:', error);
-    if (!this.isOnline) {
-      alert('Modo offline: mostrando datos cacheados');
-    }
-  }
-},
+            // Precargar el chunk necesario para la vista ArchivosCarpeta
+            if ('serviceWorker' in navigator) {
+              try {
+                const registration = await navigator.serviceWorker.ready;
+                // Enviar mensaje para precachear el chunk
+                registration.active.postMessage({
+                  action: 'precache',
+                  urls: ['/js/src_views_ArchivosCarpeta_vue.js']
+                });
+                // Forzar la actualización del service worker
+                registration.update();
+              } catch (error) {
+                console.error('Error al precachear chunks:', error);
+              }
+            }
+            return;
+          }
+          throw new Error('No hay conexión y no hay datos en caché');
+        }
+      
+        const response = await axios.get('/api/folders');
+        this.folderStore.carpetas = response.data;
+        this.filteredCarpetas = response.data;
+        localStorage.setItem('carpetasCache', JSON.stringify(response.data));
+      } catch (error) {
+        console.error('Error al obtener carpetas:', error);
+        if (!this.isOnline) {
+          alert('Modo offline: mostrando datos cacheados');
+        }
+      }
+    },
     handleSearch(searchTerm) {
       if (typeof searchTerm !== "string") return;
       
@@ -142,7 +180,36 @@ export default {
       if (this.isOnline) {
         this.obtenerCarpetas(); // Actualizar datos cuando vuelve la conexión
       }
-    }
+    },
+    abrirModalConfirmacion(carpeta) {
+      this.carpetaAEliminar = carpeta;
+      this.isConfirmationModalOpen = true;
+    },
+    
+    cerrarModalConfirmacion() {
+      this.isConfirmationModalOpen = false;
+      this.carpetaAEliminar = null;
+    },
+
+    async eliminarCarpeta() {
+      try {
+        await axios.delete(`/api/folders/${this.carpetaAEliminar.idcarpeta}`);
+        this.isConfirmationModalOpen = false;
+        this.isSuccessModalOpen = true;
+        await this.obtenerCarpetas(); // Actualizar la lista
+      } catch (error) {
+        console.error("Error al eliminar la carpeta:", error);
+        alert("Error al eliminar la carpeta");
+      }
+    },
+
+    cerrarModalExito() {
+      this.isSuccessModalOpen = false;
+    },
+    onFolderCreated() {
+      this.isCreateSuccessModalOpen = true; // Muestra el modal de éxito
+      this.obtenerCarpetas(); // Actualiza la lista de carpetas
+    },
   },
   mounted() {
     this.obtenerCarpetas();

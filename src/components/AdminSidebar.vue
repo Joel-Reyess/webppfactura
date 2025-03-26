@@ -101,7 +101,7 @@
                 nombrecarpeta: nombreCarpeta,
             });
             console.log('Carpeta creada con éxito:', response.data);
-            alert('Carpeta creada con éxito');
+            emit('folder-created');
         } catch (error) {
             console.error('Error al crear la carpeta:', error);
             alert('Error al crear la carpeta');

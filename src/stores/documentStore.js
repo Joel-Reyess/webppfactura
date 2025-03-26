@@ -40,11 +40,24 @@ export const useDocumentStore = defineStore('document', {
         const cached = localStorage.getItem(cacheKey);
         if (cached) {
           this.documentosPorCarpeta[folderId] = JSON.parse(cached);
+          // Precargar el chunk necesario si estamos offline
+          if ('serviceWorker' in navigator) {
+            try {
+              await navigator.serviceWorker.ready.then(registration => {
+                registration.active.postMessage({
+                  action: 'precache',
+                  urls: ['/js/src_views_ArchivosCarpeta_vue.js']
+                });
+              });
+            } catch (error) {
+              console.error('Error al precachear chunks:', error);
+            }
+          }
           return this.documentosPorCarpeta[folderId];
         }
         throw new Error('No hay conexión y no hay datos en caché');
       }
-
+    
       try {
         const response = await axios.get(`/api/documentos/carpeta/${folderId}`);
         this.documentosPorCarpeta[folderId] = response.data;
