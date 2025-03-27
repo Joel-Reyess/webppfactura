@@ -11,8 +11,28 @@
     </button>
     <div class="collapse navbar-collapse" :class="{ show: isNavbarOpen }">
       <form class="d-flex mx-auto" @submit.prevent="handleSearch">
-        <input class="form-control me-2" type="search" placeholder="Buscar" aria-label="Buscar" v-model="searchTerm">
+        <input 
+      class="form-control me-2" 
+      type="search" 
+      placeholder="Buscar por nombre" 
+      aria-label="Buscar"
+      v-model="searchTerm"
+    >
+    <input
+      class="form-control me-2"
+      type="date"
+      v-model="searchDate"
+      placeholder="Buscar por fecha"
+    >
         <button class="btn btn-success" type="submit">Buscar</button>
+        <button 
+      class="btn btn-outline-secondary ms-2" 
+      type="button" 
+      @click="resetSearch"
+      v-if="searchTerm || searchDate"
+    >
+      Limpiar
+    </button>
       </form>
       <div class="dropdown position-relative " ref="dropdown">
         <button class="btn btn-secondary dropdown-toggle" @click="toggleDropdown">
@@ -46,6 +66,7 @@ export default {
     const dropdown = ref(null);
     const dropdownMenu = ref(null);
     const searchTerm = ref("");
+    const searchDate = ref("");
 
     const onlineStatus = ref(isOnline());
 
@@ -85,9 +106,16 @@ export default {
       router.push({ name: "Home" });
     };
     const handleSearch = () => {
-      emit("search", searchTerm.value); // Emite el término de búsqueda
+      emit("search", {
+        term: searchTerm.value,
+        date: searchDate.value
+      }); // Emite el término de búsqueda
     };
-
+    const resetSearch = () => {
+      searchTerm.value = "";
+      searchDate.value = "";
+      emit("search", { term: "", date: "" });
+    };
     const closeDropdown = (event) => {
       if (
         dropdown.value &&
@@ -122,7 +150,9 @@ export default {
       dropdown,
       myLogoUser,
       searchTerm,
+      searchDate,
       handleSearch,
+      resetSearch,
       onlineStatus,
     };
   },

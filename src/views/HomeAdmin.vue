@@ -12,8 +12,8 @@
                                 <div class="card-body">
                                     <h5 class="card-title">{{ documento.nombredocumento }}</h5>
                                     <h6 class="card-subtitle mb-2 text-muted">
-                                        {{ documento.tipodocumento }} - {{ documento.tamanodocumento }} bytes
-                                    </h6>
+  {{ documento.tipodocumento }} - {{ getNombreCarpeta(documento.idcarpeta) || 'Sin carpeta' }}
+</h6>
                                     <p class="card-text">
                                         Subido el: {{ new Date(documento.fechasubida).toLocaleDateString() }}
                                     </p>
@@ -147,35 +147,46 @@ export default {
         toggleSidebar() {
             this.isSidebarOpen = !this.isSidebarOpen;
         },
+        getNombreCarpeta(idcarpeta) {
+          if (!idcarpeta) return null;
+          const carpeta = this.carpetas.find(c => c.idcarpeta === idcarpeta);
+          return carpeta ? carpeta.nombrecarpeta : null;
+        },
 
         async obtenerDocumentos() {
-            try {
-                await this.documentStore.fetchDocuments();
-            } catch (error) {
-                console.log("Error al obtener los documentos", error);
-            }
-        },
-        handleSearch(searchTerm) {
-          if (typeof searchTerm !== "string") {
-            console.error("El término de búsqueda no es una cadena válida:", searchTerm);
-            return;
+          try {
+            await this.documentStore.fetchDocuments();
+            // Verifica que los documentos tengan el campo idcarpeta
+            this.documentStore.documentos.forEach(doc => {
+              if (!Object.prototype.hasOwnProperty.call(doc, 'idcarpeta')) {
+                doc.idcarpeta = null; // Asigna null si no existe
+              }
+            });
+          } catch (error) {
+            console.log("Error al obtener los documentos", error);
           }
-        
-          this.searchTerm = searchTerm.toLowerCase();
-        
-          if (this.searchTerm === "") {
-            // Si el término de búsqueda está vacío, muestra todos los documentos
+        },
+        handleSearch({ term, date }) {
+          this.searchTerm = term.toLowerCase();
+          this.searchDate = date;
+
+          if (!term && !date) {
             this.isSearchActive = false;
             this.filteredDocumentos = this.documentos;
-          } else {
-            // Filtra los documentos basados en el término de búsqueda
-            this.isSearchActive = true;
-            this.filteredDocumentos = this.documentos.filter((documento) =>
-              documento.nombredocumento.toLowerCase().includes(this.searchTerm)
-            );
+            return;
           }
-        },
 
+          this.isSearchActive = true;
+          this.filteredDocumentos = this.documentos.filter((documento) => {
+            const matchesText = !term || 
+              documento.nombredocumento.toLowerCase().includes(term);
+
+            const matchesDate = !date || 
+              new Date(documento.fechasubida).toISOString().split('T')[0] === date;
+
+            return matchesText && matchesDate;
+          });
+        },
         async obtenerCarpetas() {
             try {
                 await this.folderStore.fetchFolders();
@@ -295,6 +306,10 @@ export default {
 .card-subtitle {
     font-size: 0.875rem;
     color: #6c757d;
+}
+.card-subtitle .carpeta-asignada {
+  color: #28a745;
+  font-weight: bold;
 }
 
 .card-text {

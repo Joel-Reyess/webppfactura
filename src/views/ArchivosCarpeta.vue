@@ -119,6 +119,7 @@ export default {
       //documentos: [],
       filteredDocumentos: [],
       searchTerm: "",
+      searchDate: "",
       isSearchActive: false,
       isModalOpen: false,
       selectedFileUrl: '',
@@ -146,50 +147,50 @@ export default {
       this.isSidebarOpen = !this.isSidebarOpen;
     },
     async obtenerDocumentosDeCarpeta() {
-  try {
-    await this.documentStore.fetchDocumentsByFolder(this.$route.params.id);
-  } catch (error) {
-    console.error('Error al obtener los documentos de la carpeta:', error);
-    if (!navigator.onLine) {
-      // Intenta precachear el chunk si está offline
-      if ('serviceWorker' in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          registration.active.postMessage({
-            action: 'precache',
-            urls: ['/js/src_views_ArchivosCarpeta_vue.js']
-          });
-        } catch (swError) {
-          console.error('Error con Service Worker:', swError);
+      try {
+        await this.documentStore.fetchDocumentsByFolder(this.$route.params.id);
+      } catch (error) {
+        console.error('Error al obtener los documentos de la carpeta:', error);
+        if (!navigator.onLine) {
+          // Intenta precachear el chunk si está offline
+          if ('serviceWorker' in navigator) {
+            try {
+              const registration = await navigator.serviceWorker.ready;
+              registration.active.postMessage({
+                action: 'precache',
+                urls: ['/js/src_views_ArchivosCarpeta_vue.js']
+              });
+            } catch (swError) {
+              console.error('Error con Service Worker:', swError);
+            }
+          }
+          alert('Modo offline: mostrando datos cacheados');
         }
       }
-      alert('Modo offline: mostrando datos cacheados');
-    }
-  }
-},
-async openModal(fileName) {
-  if (!navigator.onLine) {
-    try {
-      // Intenta obtener del cache del service worker
-      const cache = await caches.open('dynamic-chunks');
-      const pdfUrl = `http://localhost:3000/uploads/${fileName}`;
-      const cachedPdf = await cache.match(pdfUrl);
-      
-      if (cachedPdf) {
-        this.selectedFileUrl = URL.createObjectURL(await cachedPdf.blob());
-        this.isModalOpen = true;
+    },
+    async openModal(fileName) {
+      if (!navigator.onLine) {
+        try {
+          // Intenta obtener del cache del service worker
+          const cache = await caches.open('dynamic-chunks');
+          const pdfUrl = `http://localhost:3000/uploads/${fileName}`;
+          const cachedPdf = await cache.match(pdfUrl);
+
+          if (cachedPdf) {
+            this.selectedFileUrl = URL.createObjectURL(await cachedPdf.blob());
+            this.isModalOpen = true;
+          } else {
+            throw new Error('Archivo no disponible offline');
+          }
+        } catch (error) {
+          console.error('Error offline:', error);
+          alert('Para ver este archivo offline, debes abrirlo primero con conexión');
+        }
       } else {
-        throw new Error('Archivo no disponible offline');
+        this.selectedFileUrl = `http://localhost:3000/uploads/${fileName}`;
+        this.isModalOpen = true;
       }
-    } catch (error) {
-      console.error('Error offline:', error);
-      alert('Para ver este archivo offline, debes abrirlo primero con conexión');
-    }
-  } else {
-    this.selectedFileUrl = `http://localhost:3000/uploads/${fileName}`;
-    this.isModalOpen = true;
-  }
-},
+    },
     closeModal() {
       this.isModalOpen = false;
       this.selectedFileUrl = '';
@@ -250,25 +251,26 @@ async openModal(fileName) {
     cerrarModalExito() {
       this.isSuccessModalOpen = false;
     },
-    handleSearch(searchTerm) {
-      if (typeof searchTerm !== "string") {
-        console.error("El término de búsqueda no es una cadena válida:", searchTerm);
-        return;
-      }
+    handleSearch({ term, date }) {
+      this.searchTerm = term ? term.toLowerCase() : '';
+      this.searchDate = date;
 
-      this.searchTerm = searchTerm.toLowerCase();
-
-      if (this.searchTerm === "") {
-        // Si el término de búsqueda está vacío, muestra todos los documentos
+      if (!term && !date) {
         this.isSearchActive = false;
         this.filteredDocumentos = this.documentos;
-      } else {
-        // Filtra los documentos basados en el término de búsqueda
-        this.isSearchActive = true;
-        this.filteredDocumentos = this.documentos.filter((documento) =>
-          documento.nombredocumento.toLowerCase().includes(this.searchTerm)
-        );
+        return;
       }
+    
+      this.isSearchActive = true;
+      this.filteredDocumentos = this.documentos.filter((documento) => {
+        const matchesText = !term || 
+          documento.nombredocumento.toLowerCase().includes(term);
+
+        const matchesDate = !date || 
+          new Date(documento.fechasubida).toISOString().split('T')[0] === date;
+
+        return matchesText && matchesDate;
+      });
     },
   },
   mounted() {

@@ -37,6 +37,14 @@
                       <label class="form-label" for="password">Contraseña</label>
                       <small v-if="errors.password" class="text-danger">{{ errors.password }}</small>
                     </div>
+                    <div class="text-end mb-4">
+                      <router-link 
+                        to="/forgot-password" 
+                        class="text-decoration-none"
+                      >
+                        ¿Olvidaste tu contraseña?
+                      </router-link>
+                    </div>
                     <!-- <div class=" form-outline mb-4">
                       <button type="button" @click="goToRegister" data-mdb-button-init data-mdb-ripple-init class="btn btn-secondary btn-block mb-4">
                         Registrate aqui

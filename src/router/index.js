@@ -3,6 +3,8 @@ import  Login  from "../views/LoginAdmin.vue";
 import  HomeAdmin  from "../views/HomeAdmin.vue";
 import CarpetasAdmin from '../views/CarpetasAdmin.vue';
 import RegisterUser from '../views/RegisterUser.vue';
+import ForgotPassword from '../views/ForgotPassword.vue';
+import ResetPassword from '../views/ResetPassword.vue';
 
 const routes = [
     {
@@ -33,6 +35,16 @@ const routes = [
       component: () => import('../views/ArchivosCarpeta.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/forgot-password',
+      name: 'ForgotPassword',
+      component: ForgotPassword
+    },
+    {
+      path: '/reset-password/:token',
+      name: 'ResetPassword',
+      component: ResetPassword
+    }
 ]
 
 const router = createRouter({
